@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light home-screen environment -->
+    <color name="widgetBackground">#F9FBF3</color>
+    <color name="widgetTextPrimary">#1A1C19</color>
+    <color name="widgetTextSecondary">#6B716A</color>
+    <color name="widgetAccent">#2E7D32</color>
+    <color name="widgetRing">#8CBE90</color>
+</resources>

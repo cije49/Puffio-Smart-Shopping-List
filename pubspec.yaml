@@ -1,0 +1,33 @@
+name: shop_list_pro
+description: "Puffio — Smart Shopping List"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  flutter_riverpod: ^2.4.9
+  isar_community: ^3.3.2
+  isar_community_flutter_libs: ^3.3.2
+  shared_preferences: ^2.5.3
+  path_provider: ^2.1.5
+  uuid: ^4.2.1
+  home_widget: ^0.9.1
+  file_picker: ^11.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.8
+  isar_community_generator: ^3.3.2
+
+flutter:
+  uses-material-design: true
