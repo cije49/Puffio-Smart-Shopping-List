@@ -58,7 +58,13 @@ class SettingsScreen extends ConsumerWidget {
             value: isWidgetEnabled,
             onChanged: (v) async {
               await ref.read(widgetEnabledProvider.notifier).set(v);
-              if (!v) await WidgetService.clear();
+              if (v) {
+                // Populate the widget right away — don't wait for the
+                // next list mutation.
+                await ref.read(widgetSyncServiceProvider).sync();
+              } else {
+                await WidgetService.clear();
+              }
             },
           ),
           const Divider(),

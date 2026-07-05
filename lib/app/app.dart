@@ -1,65 +1,80 @@
-import 'dart:ui' as ui;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:shop_list_pro/l10n/app_localizations.dart';
-import 'package:shop_list_pro/l10n/app_localizations_en.dart';
-import 'package:shop_list_pro/l10n/app_localizations_hr.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/services/widget_service.dart';
+import 'package:home_widget/home_widget.dart';
+import 'package:shop_list_pro/l10n/app_localizations.dart';
+
 import '../data/models/shopping_list_item.dart';
 import '../features/home/home_screen.dart';
-import '../features/shopping_list/shopping_list_screen.dart';
-import '../features/shopping_list/shopping_list_providers.dart';
 import '../features/list_management/list_management_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/shopping_list/shopping_list_providers.dart';
+import '../features/shopping_list/shopping_list_screen.dart';
 import '../providers/app_providers.dart';
 import 'theme.dart';
 
-class ShopListProApp extends ConsumerWidget {
+class ShopListProApp extends ConsumerStatefulWidget {
   const ShopListProApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShopListProApp> createState() => _ShopListProAppState();
+}
+
+class _ShopListProAppState extends ConsumerState<ShopListProApp> {
+  final _navKey = GlobalKey<NavigatorState>();
+  StreamSubscription<Uri?>? _widgetClickSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Widget tapped while the app was closed (cold start).
+    HomeWidget.initiallyLaunchedFromHomeWidget().then((uri) {
+      if (uri != null) _openActiveList();
+    });
+
+    // Widget tapped while the app is running / in background (warm resume).
+    _widgetClickSub = HomeWidget.widgetClicked.listen((uri) {
+      if (uri != null) _openActiveList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _widgetClickSub?.cancel();
+    super.dispose();
+  }
+
+  /// Open the shopping-list screen with Home beneath it on the back stack.
+  /// Idempotent: repeated calls always end with exactly Home → List.
+  void _openActiveList() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final nav = _navKey.currentState;
+      if (nav == null) return;
+      nav.popUntil((route) => route.isFirst);
+      nav.pushNamed('/list');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider); // null = follow system
 
-    // Auto-update the home-screen widget whenever items change.
+    // Push a fresh widget snapshot on startup (initial stream emission)
+    // and whenever the active list's items change.
     ref.listen<AsyncValue<List<ShoppingListItem>>>(
       activeListItemsProvider,
       (_, next) {
-        if (!ref.read(widgetEnabledProvider)) return;
-        next.whenData((items) async {
-          final listId = ref.read(activeListIdProvider);
-          if (listId == null) return;
-          final list =
-              await ref.read(shoppingListRepoProvider).getById(listId);
-          final unchecked = items.where((i) => !i.isChecked).toList();
-
-          // This listener lives above MaterialApp, so resolve the
-          // localizations directly from the chosen (or system) locale.
-          final lang = (ref.read(localeProvider) ??
-                  ui.PlatformDispatcher.instance.locale)
-              .languageCode;
-          final AppLocalizations t =
-              lang == 'hr' ? AppLocalizationsHr() : AppLocalizationsEn();
-
-          await WidgetService.update(
-            listName: list?.name ?? t.appTitle,
-            remainingCount: unchecked.length,
-            items: unchecked
-                .take(WidgetService.maxItems)
-                .map((i) => i.name)
-                .toList(),
-            countText: t.widgetLeftCount(unchecked.length),
-            emptyTitle: t.widgetAllDone,
-            emptySubtitle: t.widgetEmptyHint,
-            moreTemplate: t.widgetMoreTemplate,
-          );
+        next.whenData((_) {
+          ref.read(widgetSyncServiceProvider).sync();
         });
       },
     );
 
     return MaterialApp(
+      navigatorKey: _navKey,
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
       debugShowCheckedModeBanner: false,
 

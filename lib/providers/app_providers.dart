@@ -10,6 +10,7 @@ import '../core/services/item_normalization_service.dart';
 import '../core/services/category_assignment_service.dart';
 import '../core/services/suggestion_service.dart';
 import '../core/services/backup_service.dart';
+import '../core/services/widget_sync_service.dart';
 
 // =============================================================================
 // Database — must be overridden in main.dart
@@ -61,6 +62,10 @@ final suggestionServiceProvider = Provider<SuggestionService>(
 
 final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(ref.watch(isarProvider)),
+);
+
+final widgetSyncServiceProvider = Provider<WidgetSyncService>(
+  (ref) => WidgetSyncService(ref),
 );
 
 /// Normalized names of favorited items (drives star icons in the list).

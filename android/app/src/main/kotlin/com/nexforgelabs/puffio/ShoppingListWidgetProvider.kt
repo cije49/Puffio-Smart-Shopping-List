@@ -1,12 +1,13 @@
 package com.nexforgelabs.puffio
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
 
@@ -129,15 +130,13 @@ class ShoppingListWidgetProvider : HomeWidgetProvider() {
             }
         }
 
-        // ---- Tap anywhere: open the app ----
-        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        if (intent != null) {
-            val pendingIntent = PendingIntent.getActivity(
-                context, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
-        }
+        // ---- Tap anywhere: open the app directly on the shopping list ----
+        val pendingIntent = HomeWidgetLaunchIntent.getActivity(
+            context,
+            MainActivity::class.java,
+            Uri.parse("puffio://widget/open-list")
+        )
+        views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
 
         appWidgetManager.updateAppWidget(widgetId, views)
     }
