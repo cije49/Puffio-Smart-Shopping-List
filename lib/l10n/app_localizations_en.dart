@@ -19,11 +19,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeSectionPattern => 'You might need these';
   @override
-  String get homeSectionFrequent => 'Frequently bought';
+  String get homeSectionFrequent => 'Suggested for you';
   @override
-  String get homeSectionRecent => 'Quick Add (Recent)';
-  @override
-  String get homeSectionFavorites => 'Favorites';
+  String get homeSectionFavorites => 'Pinned';
   @override
   String get homeEmptyHint =>
       'Start adding items to see quick-add suggestions here.';
@@ -67,6 +65,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listDeletedSnackBar => 'List deleted';
   @override
   String get listQuickAddHint => 'Add items — comma or newline separated';
+  @override
+  String get listSwipeDeleteHint => 'Tip: swipe an item left to delete it';
 
   @override
   String get listsTitle => 'My Lists';
@@ -83,7 +83,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get listsNewListDialogTitle => 'New List';
   @override
-  String get listsNewListHint => 'List name';
+  String get listsNewListHint => 'List name (optional)';
   @override
   String get listsCreateButton => 'Create';
   @override
@@ -159,6 +159,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemDeletedSnackBar => 'Item deleted';
 
   @override
+  String get itemPinnedSnackBar => 'Added to pinned items';
+
+  @override
+  String get itemUnpinnedSnackBar => 'Removed from pinned items';
+
+  @override
   String get commonImport => 'Import';
 
   @override
@@ -199,6 +205,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import failed: not a valid backup file';
 
   @override
+  String get historyUnpin => 'Remove from pinned';
+
+  @override
   String get historyRemove => 'Remove from suggestions';
 
   @override
@@ -210,6 +219,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyRenameDialogTitle => 'Rename suggestion';
+
+  @override
+  String get settingsHelp => 'Help & tips';
+
+  @override
+  String get helpIntro =>
+      'Puffio gets smarter the more you use it. Here is how the main features work.';
+
+  @override
+  String get helpSuggestionsTitle => 'Smart suggestions';
+
+  @override
+  String get helpSuggestionsBody =>
+      'Puffio learns from the items you add and check off. Over time, the Home screen suggests things you are likely to need again — tap a chip to add it instantly. Items already on your current list are not suggested again, and suggestions shift with your shopping habits and timing.';
+
+  @override
+  String get helpPinnedTitle => 'Pinned items';
+
+  @override
+  String get helpPinnedBody =>
+      'Tap the star on a list item to pin it. Pinned items appear at the top of the Home screen whenever they are not already on your list — handy for things you want to remember even if you rarely buy them. Tap the star again to unpin.';
+
+  @override
+  String get helpSwipeTitle => 'Swipe to delete';
+
+  @override
+  String get helpSwipeBody =>
+      'Swipe a shopping-list item to the left to delete it. An Undo button appears briefly in case of a slip.';
+
+  @override
+  String get helpUnitsTitle => 'Units and quantities';
+
+  @override
+  String get helpUnitsBody =>
+      'Units are optional and always your choice — Puffio never guesses them. Once you give an item a unit (like kg or mL), Puffio remembers it for the next time you add that item. Quantity steps adapt to the unit: pieces count 1, 2, 3…, grams and millilitres step by 100, kilograms and litres by 0.5.';
+
+  @override
+  String get helpCategoriesTitle => 'Categories';
+
+  @override
+  String get helpCategoriesBody =>
+      'Puffio automatically sorts many common items into categories like Dairy or Bakery, so your list is grouped for a smoother trip through the store. If you change an item\'s category, Puffio remembers your choice. Anything it doesn\'t recognize simply lands in Other.';
+
+  @override
+  String get helpListsTitle => 'Multiple lists';
+
+  @override
+  String get helpListsBody =>
+      'You can keep several shopping lists. On the Home screen, swipe the big list card left or right — or tap its left or right edge — to switch between lists. Tap the middle of the card to open the list. The list icon in the top bar shows all your lists.';
+
+  @override
+  String get helpQuickListTitle => 'Quick list creation';
+
+  @override
+  String get helpQuickListBody =>
+      'A list name is optional. Leave it empty and tap Create — Puffio picks a unique name for you, like "My List (2)".';
+
+  @override
+  String get helpBackupTitle => 'Backup and restore';
+
+  @override
+  String get helpBackupBody =>
+      'Export backup saves all your lists, items, and learned shopping history to a single file, stored wherever you choose. Import backup restores it, replacing your current data. Nothing is uploaded anywhere.';
+
+  @override
+  String get helpOfflineNote =>
+      'Puffio works entirely on your device. Smart suggestions and category matching happen locally — no account, no cloud AI, no internet needed.';
 
   @override
   String get widgetAllDone => 'All done!';

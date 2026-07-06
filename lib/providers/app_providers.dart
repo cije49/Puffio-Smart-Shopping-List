@@ -81,8 +81,8 @@ class ActiveListNotifier extends StateNotifier<int?> {
 
   ActiveListNotifier(this._repo) : super(null);
 
-  Future<void> load() async {
-    state = await _repo.ensureActiveList();
+  Future<void> load({String? defaultName}) async {
+    state = await _repo.ensureActiveList(defaultName: defaultName);
   }
 
   Future<void> setActive(int listId) async {
@@ -163,6 +163,31 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
   return LocaleNotifier(
     ref.watch(settingsRepoProvider),
     ref.watch(initialLocaleProvider),
+  );
+});
+
+// =============================================================================
+// Swipe-to-delete hint state
+// =============================================================================
+final initialSwipeDeleteLearnedProvider =
+    Provider<Set<int>>((_) => const {});
+
+class SwipeDeleteLearnedNotifier extends StateNotifier<Set<int>> {
+  final SettingsRepository _repo;
+  SwipeDeleteLearnedNotifier(this._repo, Set<int> initial) : super(initial);
+
+  Future<void> markLearned(int listId) async {
+    if (state.contains(listId)) return;
+    state = {...state, listId};
+    await _repo.addSwipeLearnedListId(listId);
+  }
+}
+
+final swipeDeleteLearnedProvider =
+    StateNotifierProvider<SwipeDeleteLearnedNotifier, Set<int>>((ref) {
+  return SwipeDeleteLearnedNotifier(
+    ref.watch(settingsRepoProvider),
+    ref.watch(initialSwipeDeleteLearnedProvider),
   );
 });
 

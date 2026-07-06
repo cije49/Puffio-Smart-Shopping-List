@@ -2,8 +2,10 @@
 
 const String kDefaultListName = 'My List';
 
-/// Number of suggestion chips to show per section.
-const int kSuggestionLimit = 12;
+/// Number of suggestion chips to show per section. Sized so that recently
+/// used items surface in "Suggested for you" via the recency component of
+/// the score (there is no separate Recent section).
+const int kSuggestionLimit = 16;
 
 /// Minimum number of completed purchases before pattern suggestions activate.
 const int kPatternMinChecks = 3;

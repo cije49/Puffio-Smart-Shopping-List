@@ -47,18 +47,23 @@ const ItemHistorySchema = CollectionSchema(
       name: r'lastCheckedAt',
       type: IsarType.dateTime,
     ),
-    r'normalizedName': PropertySchema(
+    r'lastUnit': PropertySchema(
       id: 6,
+      name: r'lastUnit',
+      type: IsarType.string,
+    ),
+    r'normalizedName': PropertySchema(
+      id: 7,
       name: r'normalizedName',
       type: IsarType.string,
     ),
     r'timesAdded': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'timesAdded',
       type: IsarType.long,
     ),
     r'timesChecked': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'timesChecked',
       type: IsarType.long,
     )
@@ -98,6 +103,12 @@ int _itemHistoryEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.displayName.length * 3;
+  {
+    final value = object.lastUnit;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.normalizedName.length * 3;
   return bytesCount;
 }
@@ -114,9 +125,10 @@ void _itemHistorySerialize(
   writer.writeBool(offsets[3], object.isFavorite);
   writer.writeDateTime(offsets[4], object.lastAddedAt);
   writer.writeDateTime(offsets[5], object.lastCheckedAt);
-  writer.writeString(offsets[6], object.normalizedName);
-  writer.writeLong(offsets[7], object.timesAdded);
-  writer.writeLong(offsets[8], object.timesChecked);
+  writer.writeString(offsets[6], object.lastUnit);
+  writer.writeString(offsets[7], object.normalizedName);
+  writer.writeLong(offsets[8], object.timesAdded);
+  writer.writeLong(offsets[9], object.timesChecked);
 }
 
 ItemHistory _itemHistoryDeserialize(
@@ -133,9 +145,10 @@ ItemHistory _itemHistoryDeserialize(
   object.isFavorite = reader.readBool(offsets[3]);
   object.lastAddedAt = reader.readDateTimeOrNull(offsets[4]);
   object.lastCheckedAt = reader.readDateTimeOrNull(offsets[5]);
-  object.normalizedName = reader.readString(offsets[6]);
-  object.timesAdded = reader.readLong(offsets[7]);
-  object.timesChecked = reader.readLong(offsets[8]);
+  object.lastUnit = reader.readStringOrNull(offsets[6]);
+  object.normalizedName = reader.readString(offsets[7]);
+  object.timesAdded = reader.readLong(offsets[8]);
+  object.timesChecked = reader.readLong(offsets[9]);
   return object;
 }
 
@@ -159,10 +172,12 @@ P _itemHistoryDeserializeProp<P>(
     case 5:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -870,6 +885,159 @@ extension ItemHistoryQueryFilter
   }
 
   QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUnit',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUnit',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition> lastUnitEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition> lastUnitBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUnit',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition> lastUnitMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastUnit',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUnit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastUnitIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastUnit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
       normalizedNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1201,6 +1369,18 @@ extension ItemHistoryQuerySortBy
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUnit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUnit', Sort.desc);
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByNormalizedName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'normalizedName', Sort.asc);
@@ -1329,6 +1509,18 @@ extension ItemHistoryQuerySortThenBy
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUnit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUnit', Sort.desc);
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByNormalizedName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'normalizedName', Sort.asc);
@@ -1408,6 +1600,13 @@ extension ItemHistoryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QDistinct> distinctByLastUnit(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUnit', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QDistinct> distinctByNormalizedName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1472,6 +1671,12 @@ extension ItemHistoryQueryProperty
       lastCheckedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCheckedAt');
+    });
+  }
+
+  QueryBuilder<ItemHistory, String?, QQueryOperations> lastUnitProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUnit');
     });
   }
 

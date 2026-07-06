@@ -1,6 +1,7 @@
 import 'package:isar_community/isar.dart';
 import '../models/shopping_list_item.dart';
 import '../models/item_history.dart';
+import '../../core/utils/quantity_rules.dart';
 
 /// CRUD for items within a specific shopping list.
 class ShoppingItemRepository {
@@ -55,7 +56,7 @@ class ShoppingItemRepository {
   Future<int> addItem({
     required int listId,
     required String name,
-    int quantity = 1,
+    double quantity = 1,
     String? unit,
     int? categoryId,
     String addedFrom = 'manual',
@@ -89,13 +90,29 @@ class ShoppingItemRepository {
       return existing.id;
     }
 
+    // Restore the last unit the user assigned to this item, unless the
+    // caller provided one explicitly. Units are remembered, never guessed.
+    var effectiveUnit = unit;
+    if (effectiveUnit == null) {
+      final history = await _isar.itemHistorys
+          .filter()
+          .normalizedNameEqualTo(normalized)
+          .findFirst();
+      effectiveUnit = history?.lastUnit;
+    }
+
+    // Keep quantity semantically valid for the effective unit
+    // (a restored "mL" must not produce "1 mL" and a 101/201 stepper).
+    final effectiveQuantity =
+        adjustQuantityForUnitChange(quantity, effectiveUnit);
+
     final now = DateTime.now();
     final item = ShoppingListItem()
       ..listId = listId
       ..name = name.trim()
       ..normalizedName = normalized
-      ..quantity = quantity
-      ..unit = unit
+      ..quantity = effectiveQuantity
+      ..unit = effectiveUnit
       ..categoryId = categoryId
       ..addedFrom = addedFrom
       ..createdAt = now
@@ -104,7 +121,8 @@ class ShoppingItemRepository {
     await _isar.writeTxn(() async {
       await _isar.shoppingListItems.put(item);
     });
-    await _updateAddHistory(normalized, name.trim(), categoryId);
+    await _updateAddHistory(normalized, name.trim(), categoryId,
+        explicitUnit: unit);
     return item.id;
   }
 
@@ -159,7 +177,7 @@ class ShoppingItemRepository {
   Future<void> updateItem({
     required int itemId,
     String? name,
-    int? quantity,
+    double? quantity,
     String? unit,
     int? categoryId,
   }) async {
@@ -215,15 +233,18 @@ class ShoppingItemRepository {
       );
     }
 
-    // Persist category override to history for future reuse.
-    if (categoryId != null) {
+    // Persist category and unit overrides to history for future reuse.
+    if (categoryId != null || unit != null) {
       final history = await _isar.itemHistorys
           .filter()
           .normalizedNameEqualTo(item.normalizedName)
           .findFirst();
       if (history != null) {
         await _isar.writeTxn(() async {
-          history.categoryId = categoryId;
+          if (categoryId != null) history.categoryId = categoryId;
+          if (unit != null) {
+            history.lastUnit = unit.isEmpty ? null : unit;
+          }
           await _isar.itemHistorys.put(history);
         });
       }
@@ -296,6 +317,7 @@ class ShoppingItemRepository {
     String displayName,
     int? categoryId, {
     bool countAsUsage = true,
+    String? explicitUnit,
   }) async {
     final existing = await _isar.itemHistorys
         .filter()
@@ -309,12 +331,14 @@ class ShoppingItemRepository {
         existing.lastAddedAt = now;
         existing.displayName = displayName;
         if (categoryId != null) existing.categoryId = categoryId;
+        if (explicitUnit != null) existing.lastUnit = explicitUnit;
         await _isar.itemHistorys.put(existing);
       } else {
         final history = ItemHistory()
           ..normalizedName = normalized
           ..displayName = displayName
           ..categoryId = categoryId
+          ..lastUnit = explicitUnit
           ..timesAdded = 1
           ..lastAddedAt = now;
         await _isar.itemHistorys.put(history);

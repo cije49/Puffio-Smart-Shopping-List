@@ -8,6 +8,7 @@ import 'package:shop_list_pro/l10n/app_localizations.dart';
 import '../data/models/shopping_list_item.dart';
 import '../features/home/home_screen.dart';
 import '../features/list_management/list_management_screen.dart';
+import '../features/help/help_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/shopping_list/shopping_list_providers.dart';
 import '../features/shopping_list/shopping_list_screen.dart';
@@ -95,6 +96,7 @@ class _ShopListProAppState extends ConsumerState<ShopListProApp> {
         '/list': (_) => const ShoppingListScreen(),
         '/lists': (_) => const ListManagementScreen(),
         '/settings': (_) => const SettingsScreen(),
+        '/help': (_) => const HelpScreen(),
       },
     );
   }

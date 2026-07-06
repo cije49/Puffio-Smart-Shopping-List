@@ -64,6 +64,26 @@ class SettingsRepository {
   }
 
   // ---------------------------------------------------------------------------
+  // Swipe-to-delete hint — learned per list, so each new list can teach
+  // the gesture once. Stored as a string list of list ids.
+  // ---------------------------------------------------------------------------
+  static const _swipeLearnedListsKey = 'swipeDeleteLearnedLists';
+
+  Future<Set<int>> getSwipeLearnedListIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_swipeLearnedListsKey) ?? const [];
+    return raw.map(int.tryParse).whereType<int>().toSet();
+  }
+
+  Future<void> addSwipeLearnedListId(int listId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = await getSwipeLearnedListIds()
+      ..add(listId);
+    await prefs.setStringList(
+        _swipeLearnedListsKey, ids.map((i) => i.toString()).toList());
+  }
+
+  // ---------------------------------------------------------------------------
   // Clear
   // ---------------------------------------------------------------------------
   Future<void> clearAll() async {

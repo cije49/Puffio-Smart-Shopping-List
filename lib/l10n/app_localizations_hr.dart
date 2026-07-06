@@ -20,11 +20,9 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get homeSectionPattern => 'Možda vam trebaju';
   @override
-  String get homeSectionFrequent => 'Često kupovano';
+  String get homeSectionFrequent => 'Prijedlozi za vas';
   @override
-  String get homeSectionRecent => 'Brzo dodavanje (nedavno)';
-  @override
-  String get homeSectionFavorites => 'Favoriti';
+  String get homeSectionFavorites => 'Prikvačeno';
   @override
   String get homeEmptyHint =>
       'Počnite dodavati artikle kako bi se ovdje pojavili prijedlozi.';
@@ -71,6 +69,9 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get listQuickAddHint =>
       'Dodaj artikle — odvojene zarezom ili novim redom';
+  @override
+  String get listSwipeDeleteHint =>
+      'Savjet: povucite stavku ulijevo za brisanje';
 
   @override
   String get listsTitle => 'Moje liste';
@@ -87,7 +88,7 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get listsNewListDialogTitle => 'Nova lista';
   @override
-  String get listsNewListHint => 'Naziv liste';
+  String get listsNewListHint => 'Naziv liste (neobavezno)';
   @override
   String get listsCreateButton => 'Kreiraj';
   @override
@@ -163,6 +164,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get itemDeletedSnackBar => 'Stavka obrisana';
 
   @override
+  String get itemPinnedSnackBar => 'Dodano u prikvačene artikle';
+
+  @override
+  String get itemUnpinnedSnackBar => 'Uklonjeno iz prikvačenih artikala';
+
+  @override
   String get commonImport => 'Uvezi';
 
   @override
@@ -203,6 +210,9 @@ class AppLocalizationsHr extends AppLocalizations {
       'Uvoz nije uspio: datoteka nije valjana sigurnosna kopija';
 
   @override
+  String get historyUnpin => 'Ukloni iz prikvačenih';
+
+  @override
   String get historyRemove => 'Ukloni iz prijedloga';
 
   @override
@@ -214,6 +224,73 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get historyRenameDialogTitle => 'Preimenuj prijedlog';
+
+  @override
+  String get settingsHelp => 'Pomoć i savjeti';
+
+  @override
+  String get helpIntro =>
+      'Puffio postaje pametniji što ga više koristite. Evo kako rade glavne značajke.';
+
+  @override
+  String get helpSuggestionsTitle => 'Pametni prijedlozi';
+
+  @override
+  String get helpSuggestionsBody =>
+      'Puffio uči iz artikala koje dodajete i označavate kupljenima. S vremenom vam početni zaslon predlaže stvari koje ćete vjerojatno opet trebati — dodirnite prijedlog da ga odmah dodate. Artikli koji su već na trenutnoj listi ne predlažu se ponovno, a prijedlozi se mijenjaju s vašim navikama i vremenom kupovine.';
+
+  @override
+  String get helpPinnedTitle => 'Prikvačeni artikli';
+
+  @override
+  String get helpPinnedBody =>
+      'Dodirnite zvjezdicu na artiklu da ga prikvačite. Prikvačeni artikli pojavljuju se na vrhu početnog zaslona kad god nisu već na vašoj listi — korisno za stvari koje želite zapamtiti čak i ako ih rijetko kupujete. Ponovnim dodirom zvjezdice uklanjate prikvačenost.';
+
+  @override
+  String get helpSwipeTitle => 'Povuci za brisanje';
+
+  @override
+  String get helpSwipeBody =>
+      'Povucite artikl na listi ulijevo da ga izbrišete. Nakratko se pojavi gumb za poništavanje u slučaju pogreške.';
+
+  @override
+  String get helpUnitsTitle => 'Mjerne jedinice i količine';
+
+  @override
+  String get helpUnitsBody =>
+      'Jedinice su neobavezne i uvijek ih birate sami — Puffio ih nikad ne pogađa. Kad artiklu dodijelite jedinicu (npr. kg ili mL), Puffio je pamti za sljedeći put. Koraci količine prilagođavaju se jedinici: komadi idu 1, 2, 3…, grami i mililitri po 100, a kilogrami i litre po 0,5.';
+
+  @override
+  String get helpCategoriesTitle => 'Kategorije';
+
+  @override
+  String get helpCategoriesBody =>
+      'Puffio automatski razvrstava mnoge uobičajene artikle u kategorije poput Mliječni proizvodi ili Pekara, pa je lista grupirana za lakšu kupovinu. Ako promijenite kategoriju artikla, Puffio pamti vaš izbor. Ono što ne prepozna jednostavno završi u Ostalo.';
+
+  @override
+  String get helpListsTitle => 'Više lista';
+
+  @override
+  String get helpListsBody =>
+      'Možete imati više lista za kupovinu. Na početnom zaslonu povucite veliku karticu liste ulijevo ili udesno — ili dodirnite njezin lijevi ili desni rub — za prebacivanje između lista. Dodirnite sredinu kartice da otvorite listu. Ikona liste u gornjoj traci prikazuje sve vaše liste.';
+
+  @override
+  String get helpQuickListTitle => 'Brzo stvaranje liste';
+
+  @override
+  String get helpQuickListBody =>
+      'Naziv liste je neobavezan. Ostavite ga praznim i dodirnite Stvori — Puffio sam odabire jedinstveni naziv, npr. „Moja lista (2)".';
+
+  @override
+  String get helpBackupTitle => 'Sigurnosna kopija i vraćanje';
+
+  @override
+  String get helpBackupBody =>
+      'Izvoz sigurnosne kopije sprema sve vaše liste, artikle i naučenu povijest kupovine u jednu datoteku, na mjesto koje sami odaberete. Uvoz je vraća i zamjenjuje trenutne podatke. Ništa se nigdje ne prenosi.';
+
+  @override
+  String get helpOfflineNote =>
+      'Puffio radi u potpunosti na vašem uređaju. Pametni prijedlozi i prepoznavanje kategorija odvijaju se lokalno — bez računa, bez AI usluge u oblaku, bez interneta.';
 
   @override
   String get widgetAllDone => 'Sve kupljeno!';

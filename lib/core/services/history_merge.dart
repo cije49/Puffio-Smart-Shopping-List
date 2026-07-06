@@ -36,4 +36,5 @@ void mergeHistoryInto(ItemHistory target, ItemHistory source) {
   target.lastCheckedAt = later(target.lastCheckedAt, source.lastCheckedAt);
   target.isFavorite = target.isFavorite || source.isFavorite;
   target.categoryId ??= source.categoryId;
+  target.lastUnit ??= source.lastUnit;
 }

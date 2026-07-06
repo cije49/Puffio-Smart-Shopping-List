@@ -4,6 +4,7 @@ import 'package:shop_list_pro/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/item_history.dart';
 import '../../providers/app_providers.dart';
+import '../shopping_list/shopping_list_providers.dart';
 import '../shared/widgets/suggestion_chips.dart';
 import '../shared/widgets/item_autocomplete_field.dart';
 import 'home_providers.dart';
@@ -77,6 +78,19 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const Divider(height: 1),
+            if (item.isFavorite)
+              ListTile(
+                leading: const Icon(Icons.push_pin_outlined),
+                title: Text(t.historyUnpin),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  // Unpin only — the item's history and stats are kept, so
+                  // it may still surface in Suggested for you later.
+                  await ref
+                      .read(itemHistoryRepoProvider)
+                      .toggleFavoriteByName(item.normalizedName);
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: Text(t.commonRename),
@@ -199,16 +213,10 @@ class HomeScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // List summary card
-          summaryAsync.when(
-            data: (summary) => _SummaryCard(
-              summary: summary,
-              onTap: () => Navigator.pushNamed(context, '/list'),
-            ),
-            loading: () => const Card(
-              child: ListTile(title: Text('...')),
-            ),
-            error: (_, __) => const SizedBox.shrink(),
+          // List summary card with horizontal navigation between lists
+          _ListPager(
+            summaryAsync: summaryAsync,
+            onOpen: () => Navigator.pushNamed(context, '/list'),
           ),
 
           const SizedBox(height: 20),
@@ -224,11 +232,21 @@ class HomeScreen extends ConsumerWidget {
 
           // Suggestion chip sections
           suggestionsAsync.when(
+            // Keep previous chips on screen while the provider rebuilds
+            // after a list switch — prevents a full-section spinner flash.
+            skipLoadingOnReload: true,
             data: (s) {
               if (s.isEmpty) return _EmptyHint(theme: theme, hint: t.homeEmptyHint);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SuggestionChipSection(
+                    label: t.homeSectionFavorites,
+                    onLongPress: (h) => _showHistoryActions(context, ref, h),
+                    items: s.favorites,
+                    icon: Icons.push_pin_outlined,
+                    onTap: (h) => _addFromChip(ref, h, 'favorite'),
+                  ),
                   SuggestionChipSection(
                     label: t.homeSectionPattern,
                     onLongPress: (h) => _showHistoryActions(context, ref, h),
@@ -242,19 +260,6 @@ class HomeScreen extends ConsumerWidget {
                     items: s.frequent,
                     icon: Icons.trending_up,
                     onTap: (h) => _addFromChip(ref, h, 'chip'),
-                  ),
-                  SuggestionChipSection(
-                    label: t.homeSectionRecent,
-                    onLongPress: (h) => _showHistoryActions(context, ref, h),
-                    items: s.recent,
-                    onTap: (h) => _addFromChip(ref, h, 'recent'),
-                  ),
-                  SuggestionChipSection(
-                    label: t.homeSectionFavorites,
-                    onLongPress: (h) => _showHistoryActions(context, ref, h),
-                    items: s.favorites,
-                    icon: Icons.star_outline,
-                    onTap: (h) => _addFromChip(ref, h, 'favorite'),
                   ),
                 ],
               );
@@ -284,9 +289,110 @@ class HomeScreen extends ConsumerWidget {
 // Sub-widgets
 // ---------------------------------------------------------------------------
 
+/// Horizontal navigation between lists on the Home screen.
+/// The card stays full-width and visually identical regardless of list
+/// count. With >1 list: swipe left/right for prev/next, tap the left ~22%
+/// of the card for previous, right ~22% for next, and the center to open.
+/// Non-wrapping: edge taps at the first/last list do nothing.
+class _ListPager extends ConsumerWidget {
+  final AsyncValue<ActiveListSummary?> summaryAsync;
+  final VoidCallback onOpen;
+
+  const _ListPager({required this.summaryAsync, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final lists = ref.watch(orderedListsProvider).valueOrNull ?? [];
+    final activeId = ref.watch(activeListIdProvider);
+    final idx = lists.indexWhere((l) => l.id == activeId);
+    final hasMany = lists.length > 1;
+    final hasPrev = hasMany && idx > 0;
+    final hasNext = hasMany && idx >= 0 && idx < lists.length - 1;
+
+    void switchTo(int i) {
+      HapticFeedback.selectionClick();
+      ref.read(activeListIdProvider.notifier).setActive(lists[i].id);
+    }
+
+    // Single list: the whole card simply opens it.
+    if (!hasMany) {
+      return summaryAsync.when(
+        skipLoadingOnReload: true,
+        data: (summary) => _SummaryCard(summary: summary, onTap: onOpen),
+        loading: () => const Card(child: ListTile(title: Text('...'))),
+        error: (_, __) => const SizedBox.shrink(),
+      );
+    }
+
+    // Multi list: tap zones + swipe. The inner card is non-interactive;
+    // the outer detector decides by tap position.
+    // skipLoadingOnReload: when the active list changes, the summary
+    // provider rebuilds and momentarily reports loading — rendering the
+    // previous card for that frame (instead of a '...' placeholder)
+    // keeps the swipe transition visually stable.
+    final card = summaryAsync.when(
+      skipLoadingOnReload: true,
+      data: (summary) => _SummaryCard(summary: summary, onTap: null),
+      loading: () => const Card(child: ListTile(title: Text('...'))),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+
+    return Column(
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            return Semantics(
+              button: true,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapUp: (details) {
+                  final dx = details.localPosition.dx;
+                  if (dx < width * 0.22) {
+                    if (hasPrev) switchTo(idx - 1);
+                  } else if (dx > width * 0.78) {
+                    if (hasNext) switchTo(idx + 1);
+                  } else {
+                    onOpen();
+                  }
+                },
+                onHorizontalDragEnd: (details) {
+                  final v = details.primaryVelocity;
+                  if (v == null) return;
+                  if (v < -200 && hasNext) switchTo(idx + 1);
+                  if (v > 200 && hasPrev) switchTo(idx - 1);
+                },
+                child: card,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(lists.length, (i) {
+            return Container(
+              width: 7,
+              height: 7,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: i == idx
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outlineVariant,
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
 class _SummaryCard extends StatelessWidget {
   final ActiveListSummary? summary;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _SummaryCard({required this.summary, required this.onTap});
 

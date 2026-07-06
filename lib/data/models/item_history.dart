@@ -18,6 +18,10 @@ class ItemHistory {
   /// Last known category id (reused on next addition).
   int? categoryId;
 
+  /// Last unit the user explicitly assigned (reused on next addition).
+  /// Never guessed — only set when the user picks a unit themselves.
+  String? lastUnit;
+
   /// Total number of times item was added to any list.
   int timesAdded = 0;
 

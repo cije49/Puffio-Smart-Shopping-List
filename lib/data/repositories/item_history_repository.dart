@@ -13,23 +13,6 @@ class ItemHistoryRepository {
   // Suggestion queries
   // ---------------------------------------------------------------------------
 
-  /// Recent items sorted by lastAddedAt desc.
-  Future<List<ItemHistory>> getRecent({
-    required Set<String> excludedNames,
-    int limit = kSuggestionLimit,
-  }) async {
-    final all = await _isar.itemHistorys
-        .filter()
-        .lastAddedAtIsNotNull()
-        .sortByLastAddedAtDesc()
-        .findAll();
-
-    return all
-        .where((h) => !excludedNames.contains(h.normalizedName))
-        .take(limit)
-        .toList();
-  }
-
   /// Frequent items ranked by a frequency + recency score, so items the
   /// user buys *these days* outrank items bought often long ago.
   Future<List<ItemHistory>> getFrequent({
@@ -119,26 +102,20 @@ class ItemHistoryRepository {
   // Favorite toggle
   // ---------------------------------------------------------------------------
 
-  Future<void> toggleFavorite(int historyId) async {
-    final h = await _isar.itemHistorys.get(historyId);
-    if (h == null) return;
-    await _isar.writeTxn(() async {
-      h.isFavorite = !h.isFavorite;
-      await _isar.itemHistorys.put(h);
-    });
-  }
-
-  /// Toggle favorite by normalizedName (useful from the list screen).
-  Future<void> toggleFavoriteByName(String normalizedName) async {
+  /// Toggle pinned/favorite state by normalizedName.
+  /// Returns the NEW state (true = now pinned), or null if the item has
+  /// no history record.
+  Future<bool?> toggleFavoriteByName(String normalizedName) async {
     final h = await _isar.itemHistorys
         .filter()
         .normalizedNameEqualTo(normalizedName)
         .findFirst();
-    if (h == null) return;
+    if (h == null) return null;
     await _isar.writeTxn(() async {
       h.isFavorite = !h.isFavorite;
       await _isar.itemHistorys.put(h);
     });
+    return h.isFavorite;
   }
 
   // ---------------------------------------------------------------------------

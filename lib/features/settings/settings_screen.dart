@@ -87,6 +87,17 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // -------------------------------------------------------------------
+          // Help & tips
+          // -------------------------------------------------------------------
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: Text(t.settingsHelp),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.pushNamed(context, '/help'),
+          ),
+          const Divider(),
+
+          // -------------------------------------------------------------------
           // Clear all data
           // -------------------------------------------------------------------
           ListTile(
@@ -314,7 +325,9 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(localeProvider.notifier).set(null);
     await ref.read(widgetEnabledProvider.notifier).set(false);
 
-    await ref.read(activeListIdProvider.notifier).load();
+    await ref
+        .read(activeListIdProvider.notifier)
+        .load(defaultName: t.homeDefaultListName);
 
     await WidgetService.clear();
 

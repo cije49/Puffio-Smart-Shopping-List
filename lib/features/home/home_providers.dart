@@ -52,7 +52,7 @@ final suggestionsProvider =
   final listId = ref.watch(activeListIdProvider);
   if (listId == null) {
     return Stream.value(const SuggestionsResult(
-      pattern: [], frequent: [], recent: [], favorites: [],
+      pattern: [], frequent: [], favorites: [],
     ));
   }
 

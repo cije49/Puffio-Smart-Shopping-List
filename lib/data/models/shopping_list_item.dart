@@ -16,8 +16,8 @@ class ShoppingListItem {
   @Index()
   late String normalizedName;
 
-  /// Optional quantity; defaults to 1.
-  int quantity = 1;
+  /// Optional quantity; defaults to 1. Double so that 0.5 kg / 1.5 L work.
+  double quantity = 1;
 
   /// Optional unit: pcs, kg, L, etc.
   String? unit;

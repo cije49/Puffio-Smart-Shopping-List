@@ -64,6 +64,7 @@ class BackupService {
                 'normalizedName': h.normalizedName,
                 'displayName': h.displayName,
                 'categoryId': h.categoryId,
+                'lastUnit': h.lastUnit,
                 'timesAdded': h.timesAdded,
                 'timesChecked': h.timesChecked,
                 'lastAddedAt': h.lastAddedAt?.toIso8601String(),
@@ -146,7 +147,7 @@ class BackupService {
           ..name = name
           ..normalizedName =
               i['normalizedName'] as String? ?? name.toLowerCase().trim()
-          ..quantity = (i['quantity'] as num?)?.toInt() ?? 1
+          ..quantity = (i['quantity'] as num?)?.toDouble() ?? 1
           ..unit = i['unit'] as String?
           ..categoryId = mapCat(i['categoryId'])
           ..isChecked = i['isChecked'] as bool? ?? false
@@ -166,6 +167,7 @@ class BackupService {
           ..normalizedName = normalized
           ..displayName = h['displayName'] as String? ?? normalized
           ..categoryId = mapCat(h['categoryId'])
+          ..lastUnit = h['lastUnit'] as String?
           ..timesAdded = (h['timesAdded'] as num?)?.toInt() ?? 0
           ..timesChecked = (h['timesChecked'] as num?)?.toInt() ?? 0
           ..lastAddedAt = parseDateOrNull(h['lastAddedAt'])

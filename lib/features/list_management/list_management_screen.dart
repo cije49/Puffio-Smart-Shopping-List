@@ -130,8 +130,13 @@ class ListManagementScreen extends ConsumerWidget {
               child: Text(t.commonCancel)),
           FilledButton(
             onPressed: () async {
-              final name = ctrl.text.trim();
-              if (name.isEmpty) return;
+              var name = ctrl.text.trim();
+              if (name.isEmpty) {
+                // Empty input → auto-generate a unique localized name.
+                name = await ref
+                    .read(shoppingListRepoProvider)
+                    .generateUniqueName(t.homeDefaultListName);
+              }
               final id =
                   await ref.read(shoppingListRepoProvider).createList(name);
               await ref

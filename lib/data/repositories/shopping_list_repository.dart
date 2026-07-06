@@ -2,6 +2,7 @@ import 'package:isar_community/isar.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_list_item.dart';
 import '../../core/constants.dart';
+import '../../core/utils/name_generator.dart';
 
 /// CRUD + active-list logic for ShoppingList.
 class ShoppingListRepository {
@@ -60,10 +61,21 @@ class ShoppingListRepository {
   }
 
   /// Ensure at least one active list exists. Returns its id.
-  Future<int> ensureActiveList() async {
+  /// [defaultName] lets callers pass the localized default ("My List" /
+  /// "Moja lista"); falls back to the constant.
+  Future<int> ensureActiveList({String? defaultName}) async {
     final existing = await getMostRecentList();
     if (existing != null) return existing.id;
-    return createList(kDefaultListName);
+    return createList(defaultName ?? kDefaultListName);
+  }
+
+  /// Next collision-free auto-generated name based on [base]
+  /// ("My List", "My List (2)", …). Case-insensitive, fills gaps first.
+  Future<String> generateUniqueName(String base) async {
+    final lists = await getAll();
+    final existing =
+        lists.map((l) => l.name.trim().toLowerCase()).toSet();
+    return nextUniqueListName(base.trim(), existing);
   }
 
   Future<void> rename(int id, String newName) async {

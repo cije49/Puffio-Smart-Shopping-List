@@ -60,7 +60,7 @@ const ShoppingListItemSchema = CollectionSchema(
     r'quantity': PropertySchema(
       id: 8,
       name: r'quantity',
-      type: IsarType.long,
+      type: IsarType.double,
     ),
     r'unit': PropertySchema(
       id: 9,
@@ -146,7 +146,7 @@ void _shoppingListItemSerialize(
   writer.writeString(offsets[5], object.name);
   writer.writeString(offsets[6], object.normalizedName);
   writer.writeLong(offsets[7], object.position);
-  writer.writeLong(offsets[8], object.quantity);
+  writer.writeDouble(offsets[8], object.quantity);
   writer.writeString(offsets[9], object.unit);
   writer.writeDateTime(offsets[10], object.updatedAt);
 }
@@ -167,7 +167,7 @@ ShoppingListItem _shoppingListItemDeserialize(
   object.name = reader.readString(offsets[5]);
   object.normalizedName = reader.readString(offsets[6]);
   object.position = reader.readLongOrNull(offsets[7]);
-  object.quantity = reader.readLong(offsets[8]);
+  object.quantity = reader.readDouble(offsets[8]);
   object.unit = reader.readStringOrNull(offsets[9]);
   object.updatedAt = reader.readDateTime(offsets[10]);
   return object;
@@ -197,7 +197,7 @@ P _shoppingListItemDeserializeProp<P>(
     case 7:
       return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
@@ -1182,49 +1182,58 @@ extension ShoppingListItemQueryFilter
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
-      quantityEqualTo(int value) {
+      quantityEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'quantity',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
       quantityGreaterThan(
-    int value, {
+    double value, {
     bool include = false,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'quantity',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
       quantityLessThan(
-    int value, {
+    double value, {
     bool include = false,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'quantity',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
       quantityBetween(
-    int lower,
-    int upper, {
+    double lower,
+    double upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1233,6 +1242,7 @@ extension ShoppingListItemQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1916,7 +1926,7 @@ extension ShoppingListItemQueryProperty
     });
   }
 
-  QueryBuilder<ShoppingListItem, int, QQueryOperations> quantityProperty() {
+  QueryBuilder<ShoppingListItem, double, QQueryOperations> quantityProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'quantity');
     });

@@ -47,7 +47,6 @@ abstract class AppLocalizations {
   String get homeAddButton;
   String get homeSectionPattern;
   String get homeSectionFrequent;
-  String get homeSectionRecent;
   String get homeSectionFavorites;
   String get homeEmptyHint;
   String get homeOpenListFab;
@@ -70,6 +69,7 @@ abstract class AppLocalizations {
   String get listDuplicatedSnackBar;
   String get listDeletedSnackBar;
   String get listQuickAddHint;
+  String get listSwipeDeleteHint;
 
   String get listsTitle;
   String get listsNone;
@@ -117,6 +117,8 @@ abstract class AppLocalizations {
   String get commonImport;
   String get commonRemove;
   String get itemDeletedSnackBar;
+  String get itemPinnedSnackBar;
+  String get itemUnpinnedSnackBar;
   String get listMenuClearCompleted;
   String get settingsBackupExport;
   String get settingsBackupExportSubtitle;
@@ -128,10 +130,31 @@ abstract class AppLocalizations {
   String get settingsImportedSnackBar;
   String get settingsImportFailedSnackBar;
 
+  String get historyUnpin;
   String get historyRemove;
   String get historyRemoveDialogTitle;
   String get historyRemoveDialogMessage;
   String get historyRenameDialogTitle;
+
+  String get settingsHelp;
+  String get helpIntro;
+  String get helpSuggestionsTitle;
+  String get helpSuggestionsBody;
+  String get helpPinnedTitle;
+  String get helpPinnedBody;
+  String get helpSwipeTitle;
+  String get helpSwipeBody;
+  String get helpUnitsTitle;
+  String get helpUnitsBody;
+  String get helpCategoriesTitle;
+  String get helpCategoriesBody;
+  String get helpListsTitle;
+  String get helpListsBody;
+  String get helpQuickListTitle;
+  String get helpQuickListBody;
+  String get helpBackupTitle;
+  String get helpBackupBody;
+  String get helpOfflineNote;
 
   String get widgetAllDone;
   String get widgetEmptyHint;

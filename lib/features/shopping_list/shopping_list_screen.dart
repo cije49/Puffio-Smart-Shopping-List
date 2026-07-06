@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shop_list_pro/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/category_localizer.dart';
+import '../../core/utils/quantity_rules.dart';
 import '../../data/models/shopping_list.dart';
 import '../../data/models/shopping_list_item.dart';
 import '../../providers/app_providers.dart';
@@ -75,9 +76,37 @@ class ShoppingListScreen extends ConsumerWidget {
                   if (grouped.groups.isEmpty) {
                     return _EmptyList(theme: theme);
                   }
+                  final showSwipeHint = activeId != null &&
+                      !ref
+                          .watch(swipeDeleteLearnedProvider)
+                          .contains(activeId) &&
+                      grouped.groups
+                          .any((g) => g.items.any((i) => !i.isChecked));
                   return ListView.builder(
-                    itemCount: grouped.groups.length,
+                    itemCount: grouped.groups.length + 1,
                     itemBuilder: (context, gi) {
+                      // Trailing row: subtle one-time swipe-to-delete hint.
+                      if (gi == grouped.groups.length) {
+                        if (!showSwipeHint) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.swipe_left_outlined,
+                                  size: 16,
+                                  color: theme.colorScheme.outline),
+                              const SizedBox(width: 6),
+                              Text(
+                                t.listSwipeDeleteHint,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.outline),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       final group = grouped.groups[gi];
                       final isCheckedGroup =
                           group.items.isNotEmpty && group.items.first.isChecked;
@@ -92,16 +121,17 @@ class ShoppingListScreen extends ConsumerWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Category header
+                          // Category header (compact, secondary)
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
                             child: Text(
-                              headerText,
-                              style: theme.textTheme.labelLarge?.copyWith(
+                              headerText.toUpperCase(),
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: isCheckedGroup
                                     ? theme.colorScheme.outline
                                     : theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           ),
@@ -428,6 +458,9 @@ class _ItemTile extends ConsumerWidget {
         final t = AppLocalizations.of(context);
         final messenger = ScaffoldMessenger.of(context);
         HapticFeedback.mediumImpact();
+        ref
+            .read(swipeDeleteLearnedProvider.notifier)
+            .markLearned(item.listId);
         repo.deleteItem(item.id);
         messenger.hideCurrentSnackBar();
         messenger.showSnackBar(
@@ -463,9 +496,10 @@ class _ItemTile extends ConsumerWidget {
             color: item.isChecked ? theme.colorScheme.outline : null,
           ),
         ),
-        subtitle: item.quantity > 1 || item.unit != null
+        subtitle: item.quantity != 1 || item.unit != null
             ? Text(
-                '${item.quantity}${item.unit != null ? ' ${item.unit}' : ''}',
+                '${formatQuantity(item.quantity)}'
+                '${item.unit != null ? ' ${item.unit}' : ''}',
                 style: TextStyle(color: theme.colorScheme.outline),
               )
             : null,
@@ -480,9 +514,23 @@ class _ItemTile extends ConsumerWidget {
                     ? theme.colorScheme.primary
                     : theme.colorScheme.outline,
               ),
-              onPressed: () {
+              onPressed: () async {
                 HapticFeedback.selectionClick();
-                historyRepo.toggleFavoriteByName(item.normalizedName);
+                final t = AppLocalizations.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                final nowPinned = await historyRepo
+                    .toggleFavoriteByName(item.normalizedName);
+                if (nowPinned == null) return;
+                messenger.hideCurrentSnackBar();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(nowPinned
+                        ? t.itemPinnedSnackBar
+                        : t.itemUnpinnedSnackBar),
+                    duration: const Duration(seconds: 2),
+                    persist: false,
+                  ),
+                );
               },
             ),
             IconButton(

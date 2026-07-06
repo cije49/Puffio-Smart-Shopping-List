@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/category_localizer.dart';
 import '../../../data/models/shopping_list_item.dart';
 import '../../../core/constants.dart';
+import '../../../core/utils/quantity_rules.dart';
 import '../../../providers/app_providers.dart';
 import '../shopping_list_providers.dart';
 
@@ -18,7 +19,7 @@ class ItemEditModal extends ConsumerStatefulWidget {
 
 class _ItemEditModalState extends ConsumerState<ItemEditModal> {
   late TextEditingController _nameCtrl;
-  late int _quantity;
+  late double _quantity;
   String? _unit;
   int? _categoryId;
 
@@ -26,8 +27,11 @@ class _ItemEditModalState extends ConsumerState<ItemEditModal> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.item.name);
-    _quantity = widget.item.quantity;
     _unit = widget.item.unit;
+    // Normalize quantities that don't fit the unit's step grid
+    // (e.g. legacy "1 mL" rows) so the stepper never shows 101, 201, …
+    _quantity =
+        adjustQuantityForUnitChange(widget.item.quantity, _unit);
     _categoryId = widget.item.categoryId;
   }
 
@@ -45,7 +49,9 @@ class _ItemEditModalState extends ConsumerState<ItemEditModal> {
           itemId: widget.item.id,
           name: name,
           quantity: _quantity,
-          unit: _unit,
+          // Empty string means "cleared" (repo maps it to null); null would
+          // mean "not provided" and leave the old unit in place.
+          unit: _unit ?? '',
           categoryId: _categoryId,
         );
 
@@ -86,25 +92,29 @@ class _ItemEditModalState extends ConsumerState<ItemEditModal> {
             ),
             const SizedBox(height: 16),
 
-            // Quantity
+            // Quantity — steps depend on the selected unit
+            // (pcs: 1 · g/mL: 100 · kg/L/lb: 0.5)
             Row(
               children: [
                 Text(t.editItemQuantity, style: theme.textTheme.bodyLarge),
                 const Spacer(),
                 IconButton.outlined(
                   icon: const Icon(Icons.remove),
-                  onPressed: _quantity > 1
-                      ? () => setState(() => _quantity--)
+                  onPressed: _quantity - quantityStepForUnit(_unit) >=
+                          minQuantityForUnit(_unit)
+                      ? () => setState(
+                          () => _quantity -= quantityStepForUnit(_unit))
                       : null,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('$_quantity',
+                  child: Text(formatQuantity(_quantity),
                       style: theme.textTheme.titleMedium),
                 ),
                 IconButton.outlined(
                   icon: const Icon(Icons.add),
-                  onPressed: () => setState(() => _quantity++),
+                  onPressed: () => setState(
+                      () => _quantity += quantityStepForUnit(_unit)),
                 ),
               ],
             ),
@@ -119,7 +129,10 @@ class _ItemEditModalState extends ConsumerState<ItemEditModal> {
                 ...kUnits.map((u) =>
                     DropdownMenuItem(value: u, child: Text(u))),
               ],
-              onChanged: (v) => setState(() => _unit = v),
+              onChanged: (v) => setState(() {
+                _unit = v;
+                _quantity = adjustQuantityForUnitChange(_quantity, v);
+              }),
             ),
             const SizedBox(height: 16),
 

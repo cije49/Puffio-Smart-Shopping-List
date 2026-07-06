@@ -36,6 +36,11 @@ class CategoryRepository {
 
   Future<Category?> getById(int id) => _isar.categorys.get(id);
 
+  /// Find a category by its canonical (seeded) name.
+  Future<Category?> getByName(String name) async {
+    return _isar.categorys.filter().nameEqualTo(name).findFirst();
+  }
+
   /// Find the "Other" fallback category.
   Future<Category?> getOther() async {
     return _isar.categorys
