@@ -22,7 +22,7 @@ plugins {
     id("com.android.application") version "8.11.1" apply false
     // Not applied to the app module (it uses Flutter's built-in Kotlin).
     // This only pins the KGP version used by plugins that still apply it
-    // (file_picker, home_widget, shared_preferences_android).
+    // (file_picker, shared_preferences_android).
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 

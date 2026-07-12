@@ -1,12 +1,19 @@
 import 'package:isar_community/isar.dart';
+import '../models/shopping_list.dart';
 import '../models/shopping_list_item.dart';
 import '../models/item_history.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/utils/quantity_rules.dart';
 
 /// CRUD for items within a specific shopping list.
 class ShoppingItemRepository {
   final Isar _isar;
-  const ShoppingItemRepository(this._isar);
+  final NotificationService _notifications;
+  const ShoppingItemRepository(this._isar, this._notifications);
+
+  /// Name of the list an item belongs to (for notification bodies).
+  Future<String?> _listNameOf(int listId) async =>
+      (await _isar.shoppingLists.get(listId))?.name;
 
   // ---------------------------------------------------------------------------
   // Reactive stream — items for a given list.
@@ -29,6 +36,18 @@ class ShoppingItemRepository {
       return sorted;
     });
   }
+
+  /// Reactive stream of every item (in any list) that has a due date.
+  /// Powers the calendar overview.
+  Stream<List<ShoppingListItem>> watchDatedItems() {
+    return _isar.shoppingListItems
+        .filter()
+        .dueDateIsNotNull()
+        .watch(fireImmediately: true);
+  }
+
+  Future<ShoppingListItem?> getById(int itemId) =>
+      _isar.shoppingListItems.get(itemId);
 
   Future<List<ShoppingListItem>> getByList(int listId) async {
     return _isar.shoppingListItems
@@ -90,16 +109,14 @@ class ShoppingItemRepository {
       return existing.id;
     }
 
-    // Restore the last unit the user assigned to this item, unless the
-    // caller provided one explicitly. Units are remembered, never guessed.
-    var effectiveUnit = unit;
-    if (effectiveUnit == null) {
-      final history = await _isar.itemHistorys
-          .filter()
-          .normalizedNameEqualTo(normalized)
-          .findFirst();
-      effectiveUnit = history?.lastUnit;
-    }
+    // Restore learned attributes from history: the last unit the user
+    // assigned (unless provided explicitly) and the last remembered price
+    // and location ("Olive oil → 7.99 at Lidl"). Remembered, never guessed.
+    final history = await _isar.itemHistorys
+        .filter()
+        .normalizedNameEqualTo(normalized)
+        .findFirst();
+    final effectiveUnit = unit ?? history?.lastUnit;
 
     // Keep quantity semantically valid for the effective unit
     // (a restored "mL" must not produce "1 mL" and a 101/201 stepper).
@@ -115,6 +132,8 @@ class ShoppingItemRepository {
       ..unit = effectiveUnit
       ..categoryId = categoryId
       ..addedFrom = addedFrom
+      ..price = history?.lastPrice
+      ..location = history?.lastLocation
       ..createdAt = now
       ..updatedAt = now;
 
@@ -168,18 +187,39 @@ class ShoppingItemRepository {
     if (willBeChecked) {
       await _updateCheckHistory(item.normalizedName, now);
     }
+
+    // Checked items don't need reminding; unchecking restores a still-valid
+    // reminder (scheduleForItem is a no-op for past or disabled reminders).
+    if (willBeChecked) {
+      await _notifications.cancelForItem(item.id);
+    } else if (item.reminderEnabled) {
+      await _notifications.scheduleForItem(item,
+          listName: await _listNameOf(item.listId));
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Edit
   // ---------------------------------------------------------------------------
 
+  /// [updateSchedule] / [updateExtras] act as "provided" flags so that null
+  /// can mean "cleared" for dueDate, price, and location (mirrors the empty-
+  /// string sentinel used for [unit]).
   Future<void> updateItem({
     required int itemId,
     String? name,
     double? quantity,
     String? unit,
     int? categoryId,
+    bool updateSchedule = false,
+    DateTime? dueDate,
+    bool hasDueTime = false,
+    bool reminderEnabled = false,
+    int reminderOffsetMinutes = 0,
+    String reminderRepeat = 'none',
+    bool updateExtras = false,
+    double? price,
+    String? location,
   }) async {
     final item = await _isar.shoppingListItems.get(itemId);
     if (item == null) return;
@@ -206,6 +246,8 @@ class ShoppingItemRepository {
           await _isar.shoppingListItems.put(clash);
           await _isar.shoppingListItems.delete(item.id);
         });
+        // The edited row no longer exists — drop its pending reminder.
+        await _notifications.cancelForItem(item.id);
         return;
       }
     }
@@ -218,9 +260,29 @@ class ShoppingItemRepository {
       if (quantity != null && quantity > 0) item.quantity = quantity;
       if (unit != null) item.unit = unit.isEmpty ? null : unit;
       if (categoryId != null) item.categoryId = categoryId;
+      if (updateSchedule) {
+        item.dueDate = dueDate;
+        item.hasDueTime = dueDate != null && hasDueTime;
+        item.reminderEnabled = dueDate != null && reminderEnabled;
+        item.reminderOffsetMinutes = reminderOffsetMinutes;
+        item.reminderRepeat = reminderRepeat;
+      }
+      if (updateExtras) {
+        item.price = price;
+        final loc = location?.trim();
+        item.location = (loc == null || loc.isEmpty) ? null : loc;
+      }
       item.updatedAt = DateTime.now();
       await _isar.shoppingListItems.put(item);
     });
+
+    // Keep the scheduled notification in lockstep with the stored state.
+    // scheduleForItem also handles the cancel cases (reminder disabled,
+    // date removed, trigger in the past, item checked).
+    if (updateSchedule) {
+      await _notifications.scheduleForItem(item,
+          listName: await _listNameOf(item.listId));
+    }
 
     // Make sure the new name is known to history so suggestions and
     // autocomplete pick it up (without inflating usage counts).
@@ -233,8 +295,18 @@ class ShoppingItemRepository {
       );
     }
 
-    // Persist category and unit overrides to history for future reuse.
-    if (categoryId != null || unit != null) {
+    // Persist category, unit, price, and location overrides to history for
+    // future reuse. Price and location are remembered only when non-empty:
+    // clearing them on this list item intentionally leaves the previously
+    // remembered values intact.
+    final rememberPrice = updateExtras && price != null;
+    final rememberLocation = updateExtras &&
+        location != null &&
+        location.trim().isNotEmpty;
+    if (categoryId != null ||
+        unit != null ||
+        rememberPrice ||
+        rememberLocation) {
       final history = await _isar.itemHistorys
           .filter()
           .normalizedNameEqualTo(item.normalizedName)
@@ -245,6 +317,8 @@ class ShoppingItemRepository {
           if (unit != null) {
             history.lastUnit = unit.isEmpty ? null : unit;
           }
+          if (rememberPrice) history.lastPrice = price;
+          if (rememberLocation) history.lastLocation = location.trim();
           await _isar.itemHistorys.put(history);
         });
       }
@@ -259,6 +333,7 @@ class ShoppingItemRepository {
     await _isar.writeTxn(() async {
       await _isar.shoppingListItems.delete(itemId);
     });
+    await _notifications.cancelForItem(itemId);
   }
 
   /// Delete all checked items in a list. Returns how many were removed.
@@ -273,7 +348,21 @@ class ShoppingItemRepository {
     await _isar.writeTxn(() async {
       await _isar.shoppingListItems.deleteAll(ids);
     });
+    await _notifications.cancelMany(ids);
     return ids.length;
+  }
+
+  /// Delete every item in a list (the list itself is kept).
+  Future<void> clearList(int listId) async {
+    final ids = await _isar.shoppingListItems
+        .filter()
+        .listIdEqualTo(listId)
+        .idProperty()
+        .findAll();
+    await _isar.writeTxn(() async {
+      await _isar.shoppingListItems.deleteAll(ids);
+    });
+    await _notifications.cancelMany(ids);
   }
 
   /// Persist a manual ordering: items get sequential positions.
@@ -301,11 +390,23 @@ class ShoppingItemRepository {
       ..isChecked = item.isChecked
       ..position = item.position
       ..addedFrom = item.addedFrom
+      ..dueDate = item.dueDate
+      ..hasDueTime = item.hasDueTime
+      ..reminderEnabled = item.reminderEnabled
+      ..reminderOffsetMinutes = item.reminderOffsetMinutes
+      ..reminderRepeat = item.reminderRepeat
+      ..price = item.price
+      ..location = item.location
       ..createdAt = item.createdAt
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() async {
       await _isar.shoppingListItems.put(copy);
     });
+    // The restored row has a new id — schedule under the new id if needed.
+    if (copy.reminderEnabled && !copy.isChecked) {
+      await _notifications.scheduleForItem(copy,
+          listName: await _listNameOf(copy.listId));
+    }
   }
 
   // ---------------------------------------------------------------------------

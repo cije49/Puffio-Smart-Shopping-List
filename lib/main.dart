@@ -24,7 +24,6 @@ void main() async {
   final themeMode = themeModeFromString(await settingsRepo.getThemeMode());
   final localeCode = await settingsRepo.getLocaleCode();
   final initialLocale = localeCode != null ? Locale(localeCode) : null;
-  final isWidgetEnabled = await settingsRepo.isWidgetEnabled();
   final swipeLearned = await settingsRepo.getSwipeLearnedListIds();
 
   // 4. Build the provider container with overrides
@@ -33,7 +32,6 @@ void main() async {
       isarProvider.overrideWithValue(isar),
       initialThemeModeProvider.overrideWithValue(themeMode),
       initialLocaleProvider.overrideWithValue(initialLocale),
-      initialWidgetEnabledProvider.overrideWithValue(isWidgetEnabled),
       initialSwipeDeleteLearnedProvider.overrideWithValue(swipeLearned),
     ],
   );
@@ -48,7 +46,17 @@ void main() async {
       .read(activeListIdProvider.notifier)
       .load(defaultName: defaultListName);
 
-  // 6. Run the app
+  // 6. Initialize local notifications and rebuild the reminder schedule
+  //    from the database. The plugin's boot receiver already restores
+  //    reminders after a reboot; this start-up resync is a second safety
+  //    net (and cleans up any orphaned notifications).
+  final notifications = container.read(notificationServiceProvider);
+  await notifications.init();
+  // Fire-and-forget: don't delay first frame on the schedule rebuild.
+  // ignore: unawaited_futures
+  notifications.resyncAll();
+
+  // 7. Run the app
   runApp(
     UncontrolledProviderScope(
       container: container,

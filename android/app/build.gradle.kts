@@ -23,6 +23,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Required by flutter_local_notifications (java.time backport).
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -45,6 +47,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Installable alongside the Play (closed-testing / production)
+            // build: distinct application id → separate app, separate data,
+            // separate widget, notifications, and database.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-dev"
+            // "Puffio Dev" launcher name comes from
+            // src/debug/res/values/strings.xml (app_name override).
+        }
         release {
             // Use the release keystore when key.properties exists;
             // fall back to debug signing so `flutter run --release` still works locally.
@@ -61,6 +72,11 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    // Required by flutter_local_notifications when desugaring is enabled.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 flutter {

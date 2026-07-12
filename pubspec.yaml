@@ -1,7 +1,7 @@
 name: shop_list_pro
 description: "Puffio — Smart Shopping List"
 publish_to: 'none'
-version: 1.0.0+3
+version: 1.0.0+5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -19,8 +19,10 @@ dependencies:
   shared_preferences: ^2.5.3
   path_provider: ^2.1.5
   uuid: ^4.2.1
-  home_widget: ^0.9.1
   file_picker: ^11.0.2
+  flutter_local_notifications: ^21.0.0
+  flutter_timezone: ^5.1.0
+  timezone: ^0.11.1
 
 dev_dependencies:
   flutter_test:

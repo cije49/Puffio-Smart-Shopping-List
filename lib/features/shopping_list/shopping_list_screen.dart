@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shop_list_pro/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/category_localizer.dart';
+import '../../core/utils/item_display.dart';
 import '../../core/utils/quantity_rules.dart';
 import '../../data/models/shopping_list.dart';
 import '../../data/models/shopping_list_item.dart';
@@ -12,16 +13,90 @@ import '../shared/widgets/item_autocomplete_field.dart';
 import 'shopping_list_providers.dart';
 import 'widgets/item_edit_modal.dart';
 
-class ShoppingListScreen extends ConsumerWidget {
+class ShoppingListScreen extends ConsumerStatefulWidget {
   const ShoppingListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShoppingListScreen> createState() =>
+      _ShoppingListScreenState();
+}
+
+class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  /// One stable key per item id so a notification target can be located
+  /// after the lazily-built list has rendered, regardless of its index
+  /// (grouping, checked state, or sorting may have changed it).
+  final Map<int, GlobalKey> _tileKeys = {};
+
+  GlobalKey _tileKeyFor(int itemId) =>
+      _tileKeys.putIfAbsent(itemId, GlobalKey.new);
+
+  @override
+  void initState() {
+    super.initState();
+    // The screen may be pushed after the highlight target was set
+    // (notification tap): check once the first frame has rendered.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = ref.read(notificationHighlightProvider);
+      if (target != null) _revealItem(target);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Scrolls until the tile for [itemId] exists and is visible, roughly
+  /// centering it. Because the list builds lazily, the loop nudges the
+  /// scroll position down until the tile's key gets a context.
+  Future<void> _revealItem(int itemId) async {
+    for (var attempt = 0; attempt < 40; attempt++) {
+      if (!mounted) return;
+      final ctx = _tileKeys[itemId]?.currentContext;
+      // Guard with the element's own `mounted` (not the State's) so the
+      // context is known-valid despite the awaits in this loop.
+      if (ctx != null && ctx.mounted) {
+        await Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.35,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+        return;
+      }
+      if (_scrollController.hasClients) {
+        final pos = _scrollController.position;
+        if (pos.pixels >= pos.maxScrollExtent - 1) return; // not found
+        await _scrollController.animateTo(
+          min(pos.pixels + pos.viewportDimension * 0.8,
+              pos.maxScrollExtent),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.linear,
+        );
+      }
+      // Give the list (or a pending data load) a frame to build.
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Reminder tapped while this screen is already on top.
+    ref.listen<int?>(notificationHighlightProvider, (previous, next) {
+      if (next != null) _revealItem(next);
+    });
+
     final t = AppLocalizations.of(context);
     final groupedAsync = ref.watch(groupedItemsProvider);
     final allListsAsync = ref.watch(orderedListsProvider);
     final activeId = ref.watch(activeListIdProvider);
     final theme = Theme.of(context);
+    final hasChecked = groupedAsync.valueOrNull?.groups
+            .any((g) => g.items.any((i) => i.isChecked)) ??
+        false;
 
     // Derive the title from the already-loaded lists (no async flash).
     final titleText = allListsAsync.whenData((lists) {
@@ -36,12 +111,11 @@ class ShoppingListScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (action) => _onMenuAction(context, ref, action),
             itemBuilder: (_) => [
-              PopupMenuItem(
-                  value: 'clear_completed',
-                  child: Text(t.listMenuClearCompleted)),
               PopupMenuItem(value: 'rename', child: Text(t.listMenuRename)),
               PopupMenuItem(
                   value: 'duplicate', child: Text(t.listMenuDuplicate)),
+              PopupMenuItem(
+                  value: 'clear_all', child: Text(t.listMenuClearAll)),
               PopupMenuItem(value: 'delete', child: Text(t.listMenuDelete)),
             ],
           ),
@@ -71,7 +145,52 @@ class ShoppingListScreen extends ConsumerWidget {
             // List content
             // -----------------------------------------------------------------
             Expanded(
-              child: groupedAsync.when(
+              child: Stack(
+                children: [
+                  _buildListContent(context, ref, t, theme, groupedAsync),
+                  // Contextual end-of-shopping-trip action: only visible
+                  // while the list has completed items.
+                  if (hasChecked)
+                    Positioned(
+                      left: 16,
+                      bottom: 16,
+                      child: FloatingActionButton.extended(
+                        heroTag: 'clear_completed_fab',
+                        backgroundColor:
+                            theme.colorScheme.secondaryContainer,
+                        foregroundColor:
+                            theme.colorScheme.onSecondaryContainer,
+                        elevation: 1,
+                        icon: const Icon(Icons.remove_done, size: 20),
+                        label: Text(t.listMenuClearCompleted),
+                        onPressed: () {
+                          HapticFeedback.selectionClick();
+                          _confirmClearCompleted(context, ref);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddModal(context, ref),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildListContent(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+    ThemeData theme,
+    AsyncValue<GroupedItems> groupedAsync,
+  ) {
+    final activeId = ref.watch(activeListIdProvider);
+    return groupedAsync.when(
                 data: (grouped) {
                   if (grouped.groups.isEmpty) {
                     return _EmptyList(theme: theme);
@@ -83,6 +202,14 @@ class ShoppingListScreen extends ConsumerWidget {
                       grouped.groups
                           .any((g) => g.items.any((i) => !i.isChecked));
                   return ListView.builder(
+                    controller: _scrollController,
+                    // Keep the last rows clear of the bottom action buttons.
+                    // The FABs grow with the system font, so scale the
+                    // reserved space with it too.
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.textScalerOf(context)
+                                .scale(56) +
+                            40),
                     itemCount: grouped.groups.length + 1,
                     itemBuilder: (context, gi) {
                       // Trailing row: subtle one-time swipe-to-delete hint.
@@ -98,10 +225,14 @@ class ShoppingListScreen extends ConsumerWidget {
                                   size: 16,
                                   color: theme.colorScheme.outline),
                               const SizedBox(width: 6),
-                              Text(
-                                t.listSwipeDeleteHint,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.outline),
+                              // Flexible so the hint wraps instead of
+                              // overflowing at enlarged font sizes.
+                              Flexible(
+                                child: Text(
+                                  t.listSwipeDeleteHint,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.outline),
+                                ),
                               ),
                             ],
                           ),
@@ -140,7 +271,7 @@ class ShoppingListScreen extends ConsumerWidget {
                           // Items — unchecked groups reorder by long-press drag
                           if (isCheckedGroup)
                             ...group.items.map((item) => _ItemTile(
-                                  key: ValueKey(item.id),
+                                  key: _tileKeyFor(item.id),
                                   item: item,
                                 ))
                           else
@@ -165,7 +296,10 @@ class ShoppingListScreen extends ConsumerWidget {
                                 return ReorderableDelayedDragStartListener(
                                   key: ValueKey(item.id),
                                   index: i,
-                                  child: _ItemTile(item: item),
+                                  child: _ItemTile(
+                                    key: _tileKeyFor(item.id),
+                                    item: item,
+                                  ),
                                 );
                               },
                             ),
@@ -177,16 +311,7 @@ class ShoppingListScreen extends ConsumerWidget {
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e')),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddModal(context, ref),
-        child: const Icon(Icons.add),
-      ),
-    );
+              );
   }
 
   // -------------------------------------------------------------------------
@@ -195,17 +320,14 @@ class ShoppingListScreen extends ConsumerWidget {
 
   void _onMenuAction(BuildContext context, WidgetRef ref, String action) {
     switch (action) {
-      case 'clear_completed':
-        final listId = ref.read(activeListIdProvider);
-        if (listId != null) {
-          ref.read(shoppingItemRepoProvider).clearChecked(listId);
-        }
-        break;
       case 'rename':
         _showRenameDialog(context, ref);
         break;
       case 'duplicate':
         _duplicateList(context, ref);
+        break;
+      case 'clear_all':
+        _confirmClearWholeList(context, ref);
         break;
       case 'delete':
         _deleteList(context, ref);
@@ -265,6 +387,82 @@ class ShoppingListScreen extends ConsumerWidget {
     }
   }
 
+  /// Shared destructive-action confirmation. Cancel, Android back, and
+  /// tapping outside all dismiss without running [onConfirm].
+  Future<void> _confirmDestructive(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Future<void> Function() onConfirm,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        // Scrollable so long localized text never clips at large fonts.
+        content: SingleChildScrollView(child: Text(message)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppLocalizations.of(ctx).commonCancel)),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await onConfirm();
+  }
+
+  /// Empties the list after explicit confirmation. The list itself, its
+  /// name, and all learned history are kept. No-op on an empty list.
+  Future<void> _confirmClearWholeList(
+      BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context);
+    final listId = ref.read(activeListIdProvider);
+    if (listId == null) return;
+
+    // Preserve existing empty-list behavior: nothing to clear, no dialog.
+    final items =
+        await ref.read(shoppingItemRepoProvider).getByList(listId);
+    if (items.isEmpty) return;
+
+    if (!context.mounted) return;
+    await _confirmDestructive(
+      context,
+      title: t.listClearAllDialogTitle,
+      message: t.listClearAllDialogMessage,
+      confirmLabel: t.listClearAllConfirm,
+      onConfirm: () =>
+          ref.read(shoppingItemRepoProvider).clearList(listId),
+    );
+  }
+
+  /// Removes completed items after explicit confirmation (bottom-left
+  /// button; only visible when completed items exist).
+  Future<void> _confirmClearCompleted(
+      BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context);
+    final listId = ref.read(activeListIdProvider);
+    if (listId == null) return;
+
+    await _confirmDestructive(
+      context,
+      title: t.listClearCompletedDialogTitle,
+      message: t.listClearCompletedDialogMessage,
+      confirmLabel: t.listMenuClearCompleted,
+      onConfirm: () async {
+        await ref.read(shoppingItemRepoProvider).clearChecked(listId);
+      },
+    );
+  }
+
   Future<void> _deleteList(BuildContext context, WidgetRef ref) async {
     final t = AppLocalizations.of(context);
     final listId = ref.read(activeListIdProvider);
@@ -274,7 +472,7 @@ class ShoppingListScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t.listDeleteDialogTitle),
-        content: Text(t.listDeleteMessage),
+        content: SingleChildScrollView(child: Text(t.listDeleteMessage)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -443,6 +641,8 @@ class _ItemTile extends ConsumerWidget {
             .valueOrNull
             ?.contains(item.normalizedName) ??
         false;
+    final isHighlighted =
+        ref.watch(notificationHighlightProvider) == item.id;
 
     return Dismissible(
       key: ValueKey('dismiss_${item.id}'),
@@ -477,7 +677,11 @@ class _ItemTile extends ConsumerWidget {
           ),
         );
       },
-      child: ListTile(
+      child: _withHighlight(
+          ref,
+          theme,
+          isHighlighted,
+          ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         leading: Checkbox(
@@ -496,13 +700,7 @@ class _ItemTile extends ConsumerWidget {
             color: item.isChecked ? theme.colorScheme.outline : null,
           ),
         ),
-        subtitle: item.quantity != 1 || item.unit != null
-            ? Text(
-                '${formatQuantity(item.quantity)}'
-                '${item.unit != null ? ' ${item.unit}' : ''}',
-                style: TextStyle(color: theme.colorScheme.outline),
-              )
-            : null,
+        subtitle: _buildSubtitle(context, theme),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -544,7 +742,112 @@ class _ItemTile extends ConsumerWidget {
           HapticFeedback.selectionClick();
           repo.toggleCheck(item.id);
         },
+          )),
+    );
+  }
+
+  /// Briefly tints the tile after a reminder-notification tap; the tint
+  /// fades out and then clears the highlight state (one-shot, nothing is
+  /// permanently changed on the item).
+  Widget _withHighlight(
+      WidgetRef ref, ThemeData theme, bool active, Widget child) {
+    if (!active) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 1.0, end: 0.0),
+      duration: const Duration(milliseconds: 2200),
+      curve: Curves.easeOut,
+      onEnd: () =>
+          ref.read(notificationHighlightProvider.notifier).state = null,
+      builder: (context, value, inner) => ColoredBox(
+        color: theme.colorScheme.primaryContainer
+            .withValues(alpha: 0.6 * value),
+        child: inner,
       ),
+      child: child,
+    );
+  }
+
+  /// Secondary line(s) under the item name: quantity/unit plus the optional
+  /// date, reminder, price, and location. Kept visually smaller than the
+  /// name; wraps instead of clipping so enlarged fonts stay readable.
+  Widget? _buildSubtitle(BuildContext context, ThemeData theme) {
+    final hasQty = item.quantity != 1 || item.unit != null;
+    final hasMeta =
+        item.dueDate != null || item.price != null || item.location != null;
+    if (!hasQty && !hasMeta) return null;
+
+    final muted = theme.colorScheme.outline;
+    final dateColor = item.isChecked
+        ? muted
+        : (isOverdue(item)
+            ? theme.colorScheme.error
+            : theme.colorScheme.primary);
+    final metaStyle = theme.textTheme.bodySmall?.copyWith(color: muted);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasQty)
+          Text(
+            '${formatQuantity(item.quantity)}'
+            '${item.unit != null ? ' ${item.unit}' : ''}',
+            style: TextStyle(color: muted),
+          ),
+        if (hasMeta)
+          Padding(
+            padding: EdgeInsets.only(top: hasQty ? 2 : 0),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (item.dueDate != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.event_outlined, size: 14, color: dateColor),
+                      const SizedBox(width: 3),
+                      Text(
+                        formatDueDate(context, item),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: dateColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (item.reminderEnabled && !item.isChecked) ...[
+                        const SizedBox(width: 3),
+                        Icon(Icons.notifications_active_outlined,
+                            size: 13, color: dateColor),
+                        if (item.reminderRepeat != 'none') ...[
+                          const SizedBox(width: 2),
+                          Icon(Icons.repeat,
+                              size: 13, color: dateColor),
+                        ],
+                      ],
+                    ],
+                  ),
+                if (item.price != null)
+                  Text(formatPrice(context, item.price!), style: metaStyle),
+                if (item.location != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.place_outlined, size: 14, color: muted),
+                      const SizedBox(width: 2),
+                      Flexible(
+                        child: Text(
+                          item.location!,
+                          style: metaStyle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -569,7 +872,9 @@ class _EmptyList extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Center(
-      child: Padding(
+      // Scrollable so the empty state never clips vertically when the
+      // system font is strongly enlarged.
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,

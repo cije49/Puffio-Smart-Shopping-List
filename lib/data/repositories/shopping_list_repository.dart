@@ -2,12 +2,14 @@ import 'package:isar_community/isar.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_list_item.dart';
 import '../../core/constants.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/utils/name_generator.dart';
 
 /// CRUD + active-list logic for ShoppingList.
 class ShoppingListRepository {
   final Isar _isar;
-  const ShoppingListRepository(this._isar);
+  final NotificationService _notifications;
+  const ShoppingListRepository(this._isar, this._notifications);
 
   // ---------------------------------------------------------------------------
   // Queries
@@ -130,6 +132,15 @@ class ShoppingListRepository {
           ..isChecked = false
           ..position = item.position
           ..addedFrom = item.addedFrom
+          // Dates, prices, and locations carry over; reminders stay off on
+          // the copy so a duplicated list never double-notifies.
+          ..dueDate = item.dueDate
+          ..hasDueTime = item.hasDueTime
+          ..reminderEnabled = false
+          ..reminderOffsetMinutes = item.reminderOffsetMinutes
+          ..reminderRepeat = item.reminderRepeat
+          ..price = item.price
+          ..location = item.location
           ..createdAt = now
           ..updatedAt = now;
         await _isar.shoppingListItems.put(copy);
@@ -142,16 +153,17 @@ class ShoppingListRepository {
   /// Delete a list and its items. If this was the only list,
   /// a new default list is auto-created.
   Future<int> deleteList(int id) async {
+    final itemIds = await _isar.shoppingListItems
+        .filter()
+        .listIdEqualTo(id)
+        .idProperty()
+        .findAll();
+
     await _isar.writeTxn(() async {
-      // Delete child items
-      final itemIds = await _isar.shoppingListItems
-          .filter()
-          .listIdEqualTo(id)
-          .idProperty()
-          .findAll();
       await _isar.shoppingListItems.deleteAll(itemIds);
       await _isar.shoppingLists.delete(id);
     });
+    await _notifications.cancelMany(itemIds);
 
     // Guarantee an active list always exists
     return ensureActiveList();
@@ -163,5 +175,6 @@ class ShoppingListRepository {
       await _isar.shoppingLists.clear();
       await _isar.shoppingListItems.clear();
     });
+    await _notifications.cancelAll();
   }
 }

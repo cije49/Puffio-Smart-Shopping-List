@@ -159,39 +159,53 @@ class _ItemAutocompleteFieldState
 
   @override
   Widget build(BuildContext context) {
+    // At strongly enlarged system fonts the side-by-side layout leaves the
+    // text field too narrow and can clip the button — stack them instead.
+    final bigText = MediaQuery.textScalerOf(context).scale(1.0) >= 1.4;
+
+    final field = TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        prefixIcon: const Icon(Icons.add_shopping_cart_outlined),
+      ),
+      minLines: 1,
+      maxLines: 4,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _handleSubmit(),
+    );
+
+    final button = FilledButton(
+      onPressed: _handleSubmit,
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+      child: Text(widget.submitLabel),
+    );
+
     return CompositedTransformTarget(
       link: _layerLink,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                prefixIcon: const Icon(Icons.add_shopping_cart_outlined),
-              ),
-              minLines: 1,
-              maxLines: 4,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _handleSubmit(),
+      child: bigText
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                field,
+                const SizedBox(height: 8),
+                button,
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: field),
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: button,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: FilledButton(
-              onPressed: _handleSubmit,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 16),
-              ),
-              child: Text(widget.submitLabel),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

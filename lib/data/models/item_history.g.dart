@@ -47,23 +47,33 @@ const ItemHistorySchema = CollectionSchema(
       name: r'lastCheckedAt',
       type: IsarType.dateTime,
     ),
-    r'lastUnit': PropertySchema(
+    r'lastLocation': PropertySchema(
       id: 6,
+      name: r'lastLocation',
+      type: IsarType.string,
+    ),
+    r'lastPrice': PropertySchema(
+      id: 7,
+      name: r'lastPrice',
+      type: IsarType.double,
+    ),
+    r'lastUnit': PropertySchema(
+      id: 8,
       name: r'lastUnit',
       type: IsarType.string,
     ),
     r'normalizedName': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'normalizedName',
       type: IsarType.string,
     ),
     r'timesAdded': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'timesAdded',
       type: IsarType.long,
     ),
     r'timesChecked': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'timesChecked',
       type: IsarType.long,
     )
@@ -104,6 +114,12 @@ int _itemHistoryEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.displayName.length * 3;
   {
+    final value = object.lastLocation;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.lastUnit;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -125,10 +141,12 @@ void _itemHistorySerialize(
   writer.writeBool(offsets[3], object.isFavorite);
   writer.writeDateTime(offsets[4], object.lastAddedAt);
   writer.writeDateTime(offsets[5], object.lastCheckedAt);
-  writer.writeString(offsets[6], object.lastUnit);
-  writer.writeString(offsets[7], object.normalizedName);
-  writer.writeLong(offsets[8], object.timesAdded);
-  writer.writeLong(offsets[9], object.timesChecked);
+  writer.writeString(offsets[6], object.lastLocation);
+  writer.writeDouble(offsets[7], object.lastPrice);
+  writer.writeString(offsets[8], object.lastUnit);
+  writer.writeString(offsets[9], object.normalizedName);
+  writer.writeLong(offsets[10], object.timesAdded);
+  writer.writeLong(offsets[11], object.timesChecked);
 }
 
 ItemHistory _itemHistoryDeserialize(
@@ -145,10 +163,12 @@ ItemHistory _itemHistoryDeserialize(
   object.isFavorite = reader.readBool(offsets[3]);
   object.lastAddedAt = reader.readDateTimeOrNull(offsets[4]);
   object.lastCheckedAt = reader.readDateTimeOrNull(offsets[5]);
-  object.lastUnit = reader.readStringOrNull(offsets[6]);
-  object.normalizedName = reader.readString(offsets[7]);
-  object.timesAdded = reader.readLong(offsets[8]);
-  object.timesChecked = reader.readLong(offsets[9]);
+  object.lastLocation = reader.readStringOrNull(offsets[6]);
+  object.lastPrice = reader.readDoubleOrNull(offsets[7]);
+  object.lastUnit = reader.readStringOrNull(offsets[8]);
+  object.normalizedName = reader.readString(offsets[9]);
+  object.timesAdded = reader.readLong(offsets[10]);
+  object.timesChecked = reader.readLong(offsets[11]);
   return object;
 }
 
@@ -174,10 +194,14 @@ P _itemHistoryDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readLong(offset)) as P;
+    case 11:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -885,6 +909,244 @@ extension ItemHistoryQueryFilter
   }
 
   QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastLocation',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastLocation',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastLocation',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastLocation',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastLocation',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastLocation',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastLocationIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastLocation',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastPrice',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastPrice',
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastPrice',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastPrice',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastPrice',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
+      lastPriceBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastPrice',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterFilterCondition>
       lastUnitIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1369,6 +1631,31 @@ extension ItemHistoryQuerySortBy
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastLocation', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy>
+      sortByLastLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastLocation', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPrice', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastPriceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPrice', Sort.desc);
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> sortByLastUnit() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastUnit', Sort.asc);
@@ -1509,6 +1796,31 @@ extension ItemHistoryQuerySortThenBy
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastLocation', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy>
+      thenByLastLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastLocation', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPrice', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastPriceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastPrice', Sort.desc);
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QAfterSortBy> thenByLastUnit() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastUnit', Sort.asc);
@@ -1600,6 +1912,19 @@ extension ItemHistoryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ItemHistory, ItemHistory, QDistinct> distinctByLastLocation(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastLocation', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ItemHistory, ItemHistory, QDistinct> distinctByLastPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastPrice');
+    });
+  }
+
   QueryBuilder<ItemHistory, ItemHistory, QDistinct> distinctByLastUnit(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1671,6 +1996,18 @@ extension ItemHistoryQueryProperty
       lastCheckedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCheckedAt');
+    });
+  }
+
+  QueryBuilder<ItemHistory, String?, QQueryOperations> lastLocationProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastLocation');
+    });
+  }
+
+  QueryBuilder<ItemHistory, double?, QQueryOperations> lastPriceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastPrice');
     });
   }
 

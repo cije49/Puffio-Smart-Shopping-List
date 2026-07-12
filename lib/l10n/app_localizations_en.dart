@@ -122,12 +122,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsClearedSnackBar => 'All data cleared.';
 
   @override
-  String get settingsWidget => 'Home screen widget';
-  @override
-  String get settingsWidgetSubtitle =>
-      'Show shopping list on your home screen';
-
-  @override
   String get editItemTitle => 'Edit Item';
   @override
   String get editItemName => 'Item name';
@@ -140,7 +134,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editItemCategory => 'Category';
   @override
-  String get editItemSave => 'Save';
+  String get editItemSave => 'Save item';
+  @override
+  String get editItemPrice => 'Price (optional)';
+  @override
+  String get editItemLocation => 'Location (optional)';
+  @override
+  String get editItemLocationHint => 'e.g. Lidl, Aisle 4, Pharmacy';
+  @override
+  String get editItemSectionSchedule => 'Date & reminder';
+  @override
+  String get editItemAddDate => 'Add date';
+  @override
+  String get editItemAddTime => 'Add time';
+  @override
+  String get editItemRemoveDate => 'Remove date';
+  @override
+  String get editItemRemoveTime => 'Remove time';
+  @override
+  String get editItemReminderToggle => 'Remind me';
+  @override
+  String get editItemReminderWhen => 'Reminder time';
+  @override
+  String get editItemRepeat => 'Repeat';
+
+  @override
+  String get repeatNever => 'Never';
+  @override
+  String get repeatDaily => 'Daily';
+  @override
+  String get repeatWeekly => 'Weekly';
+  @override
+  String get repeatMonthly => 'Monthly';
+  @override
+  String get repeatYearly => 'Yearly';
+
+  @override
+  String get reminderAtTime => 'At the selected time';
+  @override
+  String get reminder30MinBefore => '30 minutes before';
+  @override
+  String get reminder1HourBefore => '1 hour before';
+  @override
+  String get reminder3HoursBefore => '3 hours before';
+  @override
+  String get reminder1DayBefore => '1 day before';
+  @override
+  String get reminder2DaysBefore => '2 days before';
+  @override
+  String get reminder1WeekBefore => '1 week before';
+  @override
+  String get reminderPermissionDenied =>
+      'Notifications are turned off for Puffio. Allow them in system settings to get reminders.';
+
+  @override
+  String get notificationChannelName => 'Item reminders';
+  @override
+  String get notificationChannelDescription =>
+      'Reminders for shopping items with a date';
+  @override
+  String get notificationReminderBodyNoList => 'Shopping reminder';
+  @override
+  String get notificationItemGone =>
+      'That item is no longer on your lists.';
+
+  @override
+  String get calendarTitle => 'Calendar';
+  @override
+  String get calendarEmptyTitle => 'No scheduled items';
+  @override
+  String get calendarEmptyHint =>
+      'Add a date to an item — edit the item and pick a date. It will show up here.';
+  @override
+  String get calendarNoItemsForDay => 'Nothing scheduled for this day.';
+  @override
+  String get calendarOpenListTooltip => 'Open list';
 
   @override
   String get commonCancel => 'Cancel';
@@ -172,6 +240,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listMenuClearCompleted => 'Clear completed';
+
+  @override
+  String get listMenuClearAll => 'Clear whole list';
+
+  @override
+  String get listClearAllDialogTitle => 'Clear whole list?';
+
+  @override
+  String get listClearAllDialogMessage =>
+      'This will remove all items from your list. This action cannot be undone.';
+
+  @override
+  String get listClearAllConfirm => 'Clear list';
+
+  @override
+  String get listClearCompletedDialogTitle => 'Clear completed items?';
+
+  @override
+  String get listClearCompletedDialogMessage =>
+      'This will remove all completed items from your list. This action cannot be undone.';
 
   @override
   String get settingsBackupExport => 'Export backup';
@@ -224,80 +312,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHelp => 'Help & tips';
 
   @override
+  String get settingsWhatsNew => 'What\'s new';
+
+  @override
+  String get settingsWhatsNewSubtitle =>
+      'See what changed in this version';
+
+  @override
+  String get whatsNewBody =>
+      '• Item dates and reminders — pick a date and time, get notified, and let reminders repeat daily, weekly, monthly, or yearly.\n\n'
+      '• Calendar overview — tap the calendar icon on the Home screen to see every scheduled item in one place.\n\n'
+      '• Price and location — note where an item was cheapest; Puffio remembers both for the next time you add it.\n\n'
+      '• Tap a reminder notification to jump straight to the item in its list.\n\n'
+      '• Better support for enlarged system text across the whole app.\n\n'
+      '• The home-screen widget has been removed.';
+
+  @override
   String get helpIntro =>
-      'Puffio gets smarter the more you use it. Here is how the main features work.';
+      'Puffio gets smarter the more you use it. Here\'s how the main features work.';
 
   @override
   String get helpSuggestionsTitle => 'Smart suggestions';
 
   @override
   String get helpSuggestionsBody =>
-      'Puffio learns from the items you add and check off. Over time, the Home screen suggests things you are likely to need again — tap a chip to add it instantly. Items already on your current list are not suggested again, and suggestions shift with your shopping habits and timing.';
+      'Puffio learns from the items you add and complete. Over time, it suggests products you\'re likely to need again, right on the Home screen. Just tap a suggestion to add it instantly.\n\nSuggestions automatically adapt to your shopping habits and timing, and items already on your current list won\'t be suggested again.';
 
   @override
   String get helpPinnedTitle => 'Pinned items';
 
   @override
   String get helpPinnedBody =>
-      'Tap the star on a list item to pin it. Pinned items appear at the top of the Home screen whenever they are not already on your list — handy for things you want to remember even if you rarely buy them. Tap the star again to unpin.';
+      'Tap the {star} on any item to pin it.\n\nPinned items always appear at the top of the Home screen (unless they\'re already on your current shopping list), making them perfect for things you never want to forget — even if you only buy them occasionally.\n\nTap the star again to remove the pin.';
 
   @override
   String get helpSwipeTitle => 'Swipe to delete';
 
   @override
   String get helpSwipeBody =>
-      'Swipe a shopping-list item to the left to delete it. An Undo button appears briefly in case of a slip.';
+      'Swipe any item to the left to delete it.\n\nDeleted something by accident? Tap Undo before it disappears.';
 
   @override
   String get helpUnitsTitle => 'Units and quantities';
 
   @override
   String get helpUnitsBody =>
-      'Units are optional and always your choice — Puffio never guesses them. Once you give an item a unit (like kg or mL), Puffio remembers it for the next time you add that item. Quantity steps adapt to the unit: pieces count 1, 2, 3…, grams and millilitres step by 100, kilograms and litres by 0.5.';
+      'Units are always optional — Puffio never guesses them.\n\nOnce you assign a unit to an item (like kg, pcs, or mL), Puffio remembers it for next time.\n\nQuantity controls automatically match the unit:\n• pcs: 1, 2, 3…\n• g / mL: steps of 100\n• kg / L: steps of 0.5';
 
   @override
   String get helpCategoriesTitle => 'Categories';
 
   @override
   String get helpCategoriesBody =>
-      'Puffio automatically sorts many common items into categories like Dairy or Bakery, so your list is grouped for a smoother trip through the store. If you change an item\'s category, Puffio remembers your choice. Anything it doesn\'t recognize simply lands in Other.';
+      'Puffio automatically organizes many everyday products into categories like Dairy, Bakery, or Fruit & Vegetables, making your shopping list easier to follow in the store.\n\nIf you move an item to a different category, Puffio remembers your choice for future lists.\n\nAnything it doesn\'t recognize simply goes into Other.';
 
   @override
   String get helpListsTitle => 'Multiple lists';
 
   @override
   String get helpListsBody =>
-      'You can keep several shopping lists. On the Home screen, swipe the big list card left or right — or tap its left or right edge — to switch between lists. Tap the middle of the card to open the list. The list icon in the top bar shows all your lists.';
+      'Create as many shopping lists as you need.\n\nOn the Home screen, swipe the large list card left or right — or tap its left or right edge — to switch between lists.\n\nTap the center of the card to open the current list.\n\nYou can also tap the list icon in the top bar to see all your lists.';
 
   @override
   String get helpQuickListTitle => 'Quick list creation';
 
   @override
   String get helpQuickListBody =>
-      'A list name is optional. Leave it empty and tap Create — Puffio picks a unique name for you, like "My List (2)".';
+      'List names are optional.\n\nLeave the name empty and tap Create, and Puffio will automatically generate a unique name such as "My List (2)".';
 
   @override
   String get helpBackupTitle => 'Backup and restore';
 
   @override
   String get helpBackupBody =>
-      'Export backup saves all your lists, items, and learned shopping history to a single file, stored wherever you choose. Import backup restores it, replacing your current data. Nothing is uploaded anywhere.';
+      'Export backup saves all your lists, items, and Puffio\'s learned shopping history into a single backup file that you store wherever you choose.\n\nImport backup restores everything from that file, replacing your current data.\n\nYour information never leaves your device unless you choose to export it.';
+
+  @override
+  String get helpDatesTitle => 'Dates and reminders';
+
+  @override
+  String get helpDatesBody =>
+      'Need to buy something on a specific day?\n\nEdit the item and choose a date — and a time if needed. The date appears below the item in your shopping list.\n\nEnable Remind me to receive a notification, then choose when you\'d like to be reminded — from exactly on time to up to one week in advance.\n\nIf no time is set, Puffio reminds you in the morning.\n\nReminders can repeat too — daily, weekly, monthly, or yearly.\n\nYou can change or remove the date and reminder anytime by editing the item again.';
+
+  @override
+  String get helpCalendarTitle => 'Calendar overview';
+
+  @override
+  String get helpCalendarBody =>
+      'Tap the {calendar} calendar icon on the Home screen to see every scheduled item in one place.\n\nDays containing shopping items are marked with a dot.\n\nTap a day to see its items, then tap any item to edit it or jump directly to the shopping list it belongs to.';
+
+  @override
+  String get helpPriceLocationTitle => 'Price and location';
+
+  @override
+  String get helpPriceLocationBody =>
+      'While editing an item, you can save a price and a location — such as a store name or aisle.\n\nBoth appear beneath the item name to keep your list clean and easy to read.\n\nPuffio remembers the last price and location you entered, so the next time you add the same item they\'re filled in automatically. It\'s a simple way to remember where you found the best deal.\n\nRemoving them from an item doesn\'t erase the remembered values. Entering new ones updates them for future use.';
+
+  @override
+  String get helpPrivacyTitle => 'Privacy & Offline';
 
   @override
   String get helpOfflineNote =>
-      'Puffio works entirely on your device. Smart suggestions and category matching happen locally — no account, no cloud AI, no internet needed.';
-
-  @override
-  String get widgetAllDone => 'All done!';
-
-  @override
-  String get widgetEmptyHint => 'Your shopping list is empty.';
-
-  @override
-  String get widgetMoreTemplate => '+ %d more';
-
-  @override
-  String widgetLeftCount(int count) => '$count left';
+      'Puffio works completely offline.\n\nYour shopping lists, smart suggestions, and category matching all stay on your device. No account, no cloud, no AI servers, and no internet connection are required.';
 
   @override
   String get catDairy => 'Dairy';
@@ -336,4 +452,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String listsDeleteDialogTitle(String name) => 'Delete "$name"?';
+
+  @override
+  String notificationReminderBody(String listName) =>
+      'On your "$listName" list';
 }

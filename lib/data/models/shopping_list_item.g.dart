@@ -32,43 +32,78 @@ const ShoppingListItemSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'isChecked': PropertySchema(
+    r'dueDate': PropertySchema(
       id: 3,
+      name: r'dueDate',
+      type: IsarType.dateTime,
+    ),
+    r'hasDueTime': PropertySchema(
+      id: 4,
+      name: r'hasDueTime',
+      type: IsarType.bool,
+    ),
+    r'isChecked': PropertySchema(
+      id: 5,
       name: r'isChecked',
       type: IsarType.bool,
     ),
     r'listId': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'listId',
       type: IsarType.long,
     ),
+    r'location': PropertySchema(
+      id: 7,
+      name: r'location',
+      type: IsarType.string,
+    ),
     r'name': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'name',
       type: IsarType.string,
     ),
     r'normalizedName': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'normalizedName',
       type: IsarType.string,
     ),
     r'position': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'position',
       type: IsarType.long,
     ),
+    r'price': PropertySchema(
+      id: 11,
+      name: r'price',
+      type: IsarType.double,
+    ),
     r'quantity': PropertySchema(
-      id: 8,
+      id: 12,
       name: r'quantity',
       type: IsarType.double,
     ),
+    r'reminderEnabled': PropertySchema(
+      id: 13,
+      name: r'reminderEnabled',
+      type: IsarType.bool,
+    ),
+    r'reminderOffsetMinutes': PropertySchema(
+      id: 14,
+      name: r'reminderOffsetMinutes',
+      type: IsarType.long,
+    ),
+    r'reminderRepeat': PropertySchema(
+      id: 15,
+      name: r'reminderRepeat',
+      type: IsarType.string,
+    ),
     r'unit': PropertySchema(
-      id: 9,
+      id: 16,
       name: r'unit',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 10,
+      id: 17,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -104,6 +139,19 @@ const ShoppingListItemSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'dueDate': IndexSchema(
+      id: -7871003637559820552,
+      name: r'dueDate',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'dueDate',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -121,8 +169,15 @@ int _shoppingListItemEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.addedFrom.length * 3;
+  {
+    final value = object.location;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.normalizedName.length * 3;
+  bytesCount += 3 + object.reminderRepeat.length * 3;
   {
     final value = object.unit;
     if (value != null) {
@@ -141,14 +196,21 @@ void _shoppingListItemSerialize(
   writer.writeString(offsets[0], object.addedFrom);
   writer.writeLong(offsets[1], object.categoryId);
   writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeBool(offsets[3], object.isChecked);
-  writer.writeLong(offsets[4], object.listId);
-  writer.writeString(offsets[5], object.name);
-  writer.writeString(offsets[6], object.normalizedName);
-  writer.writeLong(offsets[7], object.position);
-  writer.writeDouble(offsets[8], object.quantity);
-  writer.writeString(offsets[9], object.unit);
-  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeDateTime(offsets[3], object.dueDate);
+  writer.writeBool(offsets[4], object.hasDueTime);
+  writer.writeBool(offsets[5], object.isChecked);
+  writer.writeLong(offsets[6], object.listId);
+  writer.writeString(offsets[7], object.location);
+  writer.writeString(offsets[8], object.name);
+  writer.writeString(offsets[9], object.normalizedName);
+  writer.writeLong(offsets[10], object.position);
+  writer.writeDouble(offsets[11], object.price);
+  writer.writeDouble(offsets[12], object.quantity);
+  writer.writeBool(offsets[13], object.reminderEnabled);
+  writer.writeLong(offsets[14], object.reminderOffsetMinutes);
+  writer.writeString(offsets[15], object.reminderRepeat);
+  writer.writeString(offsets[16], object.unit);
+  writer.writeDateTime(offsets[17], object.updatedAt);
 }
 
 ShoppingListItem _shoppingListItemDeserialize(
@@ -161,15 +223,22 @@ ShoppingListItem _shoppingListItemDeserialize(
   object.addedFrom = reader.readString(offsets[0]);
   object.categoryId = reader.readLongOrNull(offsets[1]);
   object.createdAt = reader.readDateTime(offsets[2]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[3]);
+  object.hasDueTime = reader.readBool(offsets[4]);
   object.id = id;
-  object.isChecked = reader.readBool(offsets[3]);
-  object.listId = reader.readLong(offsets[4]);
-  object.name = reader.readString(offsets[5]);
-  object.normalizedName = reader.readString(offsets[6]);
-  object.position = reader.readLongOrNull(offsets[7]);
-  object.quantity = reader.readDouble(offsets[8]);
-  object.unit = reader.readStringOrNull(offsets[9]);
-  object.updatedAt = reader.readDateTime(offsets[10]);
+  object.isChecked = reader.readBool(offsets[5]);
+  object.listId = reader.readLong(offsets[6]);
+  object.location = reader.readStringOrNull(offsets[7]);
+  object.name = reader.readString(offsets[8]);
+  object.normalizedName = reader.readString(offsets[9]);
+  object.position = reader.readLongOrNull(offsets[10]);
+  object.price = reader.readDoubleOrNull(offsets[11]);
+  object.quantity = reader.readDouble(offsets[12]);
+  object.reminderEnabled = reader.readBool(offsets[13]);
+  object.reminderOffsetMinutes = reader.readLong(offsets[14]);
+  object.reminderRepeat = reader.readString(offsets[15]);
+  object.unit = reader.readStringOrNull(offsets[16]);
+  object.updatedAt = reader.readDateTime(offsets[17]);
   return object;
 }
 
@@ -187,20 +256,34 @@ P _shoppingListItemDeserializeProp<P>(
     case 2:
       return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
-    case 8:
-      return (reader.readDouble(offset)) as P;
-    case 9:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
     case 10:
+      return (reader.readLongOrNull(offset)) as P;
+    case 11:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 12:
+      return (reader.readDouble(offset)) as P;
+    case 13:
+      return (reader.readBool(offset)) as P;
+    case 14:
+      return (reader.readLong(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -232,6 +315,14 @@ extension ShoppingListItemQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'listId'),
+      );
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhere> anyDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'dueDate'),
       );
     });
   }
@@ -441,6 +532,121 @@ extension ShoppingListItemQueryWhere
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'dueDate',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'dueDate',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateEqualTo(DateTime? dueDate) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'dueDate',
+        value: [dueDate],
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateNotEqualTo(DateTime? dueDate) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'dueDate',
+              lower: [],
+              upper: [dueDate],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'dueDate',
+              lower: [dueDate],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'dueDate',
+              lower: [dueDate],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'dueDate',
+              lower: [],
+              upper: [dueDate],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateGreaterThan(
+    DateTime? dueDate, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'dueDate',
+        lower: [dueDate],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateLessThan(
+    DateTime? dueDate, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'dueDate',
+        lower: [],
+        upper: [dueDate],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterWhereClause>
+      dueDateBetween(
+    DateTime? lowerDueDate,
+    DateTime? upperDueDate, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'dueDate',
+        lower: [lowerDueDate],
+        includeLower: includeLower,
+        upper: [upperDueDate],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -714,6 +920,90 @@ extension ShoppingListItemQueryFilter
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      dueDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      hasDueTimeEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasDueTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
       idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -831,6 +1121,160 @@ extension ShoppingListItemQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'location',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'location',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'location',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'location',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'location',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      locationIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'location',
+        value: '',
       ));
     });
   }
@@ -1182,6 +1626,90 @@ extension ShoppingListItemQueryFilter
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'price',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'price',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'price',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'price',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'price',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      priceBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'price',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
       quantityEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -1243,6 +1771,208 @@ extension ShoppingListItemQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderEnabledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reminderEnabled',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderOffsetMinutesEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reminderOffsetMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderOffsetMinutesGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'reminderOffsetMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderOffsetMinutesLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'reminderOffsetMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderOffsetMinutesBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'reminderOffsetMinutes',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'reminderRepeat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'reminderRepeat',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'reminderRepeat',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reminderRepeat',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterFilterCondition>
+      reminderRepeatIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'reminderRepeat',
+        value: '',
       ));
     });
   }
@@ -1509,6 +2239,34 @@ extension ShoppingListItemQuerySortBy
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByHasDueTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasDueTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByHasDueTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasDueTime', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
       sortByIsChecked() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isChecked', Sort.asc);
@@ -1533,6 +2291,20 @@ extension ShoppingListItemQuerySortBy
       sortByListIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'listId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.desc);
     });
   }
 
@@ -1577,6 +2349,19 @@ extension ShoppingListItemQuerySortBy
     });
   }
 
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy> sortByPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'price', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByPriceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'price', Sort.desc);
+    });
+  }
+
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
       sortByQuantity() {
     return QueryBuilder.apply(this, (query) {
@@ -1588,6 +2373,48 @@ extension ShoppingListItemQuerySortBy
       sortByQuantityDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'quantity', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderOffsetMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderOffsetMinutes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderOffsetMinutesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderOffsetMinutes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderRepeat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderRepeat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      sortByReminderRepeatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderRepeat', Sort.desc);
     });
   }
 
@@ -1663,6 +2490,34 @@ extension ShoppingListItemQuerySortThenBy
     });
   }
 
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByHasDueTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasDueTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByHasDueTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasDueTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1701,6 +2556,20 @@ extension ShoppingListItemQuerySortThenBy
       thenByListIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'listId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.desc);
     });
   }
 
@@ -1745,6 +2614,19 @@ extension ShoppingListItemQuerySortThenBy
     });
   }
 
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy> thenByPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'price', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByPriceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'price', Sort.desc);
+    });
+  }
+
   QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
       thenByQuantity() {
     return QueryBuilder.apply(this, (query) {
@@ -1756,6 +2638,48 @@ extension ShoppingListItemQuerySortThenBy
       thenByQuantityDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'quantity', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderOffsetMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderOffsetMinutes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderOffsetMinutesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderOffsetMinutes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderRepeat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderRepeat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QAfterSortBy>
+      thenByReminderRepeatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reminderRepeat', Sort.desc);
     });
   }
 
@@ -1811,6 +2735,20 @@ extension ShoppingListItemQueryWhereDistinct
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dueDate');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByHasDueTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasDueTime');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
       distinctByIsChecked() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isChecked');
@@ -1821,6 +2759,13 @@ extension ShoppingListItemQueryWhereDistinct
       distinctByListId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'listId');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByLocation({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'location', caseSensitive: caseSensitive);
     });
   }
 
@@ -1847,9 +2792,38 @@ extension ShoppingListItemQueryWhereDistinct
   }
 
   QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'price');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
       distinctByQuantity() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'quantity');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByReminderEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'reminderEnabled');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByReminderOffsetMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'reminderOffsetMinutes');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, ShoppingListItem, QDistinct>
+      distinctByReminderRepeat({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'reminderRepeat',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -1895,6 +2869,19 @@ extension ShoppingListItemQueryProperty
     });
   }
 
+  QueryBuilder<ShoppingListItem, DateTime?, QQueryOperations>
+      dueDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dueDate');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, bool, QQueryOperations> hasDueTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasDueTime');
+    });
+  }
+
   QueryBuilder<ShoppingListItem, bool, QQueryOperations> isCheckedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isChecked');
@@ -1904,6 +2891,12 @@ extension ShoppingListItemQueryProperty
   QueryBuilder<ShoppingListItem, int, QQueryOperations> listIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'listId');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, String?, QQueryOperations> locationProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'location');
     });
   }
 
@@ -1926,9 +2919,36 @@ extension ShoppingListItemQueryProperty
     });
   }
 
+  QueryBuilder<ShoppingListItem, double?, QQueryOperations> priceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'price');
+    });
+  }
+
   QueryBuilder<ShoppingListItem, double, QQueryOperations> quantityProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'quantity');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, bool, QQueryOperations>
+      reminderEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'reminderEnabled');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, int, QQueryOperations>
+      reminderOffsetMinutesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'reminderOffsetMinutes');
+    });
+  }
+
+  QueryBuilder<ShoppingListItem, String, QQueryOperations>
+      reminderRepeatProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'reminderRepeat');
     });
   }
 

@@ -65,7 +65,9 @@ class HomeScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
-        child: Column(
+        // Scrollable so all actions stay reachable at enlarged font sizes.
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
@@ -112,6 +114,7 @@ class HomeScreen extends ConsumerWidget {
               },
             ),
           ],
+          ),
         ),
       ),
     );
@@ -160,7 +163,8 @@ class HomeScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t.historyRemoveDialogTitle),
-        content: Text(t.historyRemoveDialogMessage),
+        content:
+            SingleChildScrollView(child: Text(t.historyRemoveDialogMessage)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -198,6 +202,16 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(t.appTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: t.settingsHelp,
+            onPressed: () => Navigator.pushNamed(context, '/help'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined),
+            tooltip: t.calendarTitle,
+            onPressed: () => Navigator.pushNamed(context, '/calendar'),
+          ),
           IconButton(
             icon: const Icon(Icons.list_alt_outlined),
             tooltip: t.homeMenuLists,

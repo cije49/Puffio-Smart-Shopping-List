@@ -127,12 +127,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get settingsClearedSnackBar => 'Svi podaci obrisani.';
 
   @override
-  String get settingsWidget => 'Widget početnog zaslona';
-  @override
-  String get settingsWidgetSubtitle =>
-      'Prikaži listu kupovine na početnom zaslonu';
-
-  @override
   String get editItemTitle => 'Uredi artikl';
   @override
   String get editItemName => 'Naziv artikla';
@@ -145,7 +139,81 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get editItemCategory => 'Kategorija';
   @override
-  String get editItemSave => 'Spremi';
+  String get editItemSave => 'Spremi artikl';
+  @override
+  String get editItemPrice => 'Cijena (neobavezno)';
+  @override
+  String get editItemLocation => 'Lokacija (neobavezno)';
+  @override
+  String get editItemLocationHint => 'npr. Lidl, polica 4, ljekarna';
+  @override
+  String get editItemSectionSchedule => 'Datum i podsjetnik';
+  @override
+  String get editItemAddDate => 'Dodaj datum';
+  @override
+  String get editItemAddTime => 'Dodaj vrijeme';
+  @override
+  String get editItemRemoveDate => 'Ukloni datum';
+  @override
+  String get editItemRemoveTime => 'Ukloni vrijeme';
+  @override
+  String get editItemReminderToggle => 'Podsjeti me';
+  @override
+  String get editItemReminderWhen => 'Vrijeme podsjetnika';
+  @override
+  String get editItemRepeat => 'Ponavljanje';
+
+  @override
+  String get repeatNever => 'Nikad';
+  @override
+  String get repeatDaily => 'Svaki dan';
+  @override
+  String get repeatWeekly => 'Svaki tjedan';
+  @override
+  String get repeatMonthly => 'Svaki mjesec';
+  @override
+  String get repeatYearly => 'Svake godine';
+
+  @override
+  String get reminderAtTime => 'U odabrano vrijeme';
+  @override
+  String get reminder30MinBefore => '30 minuta prije';
+  @override
+  String get reminder1HourBefore => '1 sat prije';
+  @override
+  String get reminder3HoursBefore => '3 sata prije';
+  @override
+  String get reminder1DayBefore => '1 dan prije';
+  @override
+  String get reminder2DaysBefore => '2 dana prije';
+  @override
+  String get reminder1WeekBefore => '1 tjedan prije';
+  @override
+  String get reminderPermissionDenied =>
+      'Obavijesti su isključene za Puffio. Dopustite ih u postavkama sustava kako biste primali podsjetnike.';
+
+  @override
+  String get notificationChannelName => 'Podsjetnici za artikle';
+  @override
+  String get notificationChannelDescription =>
+      'Podsjetnici za artikle s datumom';
+  @override
+  String get notificationReminderBodyNoList => 'Podsjetnik za kupovinu';
+  @override
+  String get notificationItemGone =>
+      'Taj artikl više nije na vašim listama.';
+
+  @override
+  String get calendarTitle => 'Kalendar';
+  @override
+  String get calendarEmptyTitle => 'Nema zakazanih artikala';
+  @override
+  String get calendarEmptyHint =>
+      'Dodajte datum artiklu — uredite artikl i odaberite datum. Pojavit će se ovdje.';
+  @override
+  String get calendarNoItemsForDay => 'Za ovaj dan nema ništa zakazano.';
+  @override
+  String get calendarOpenListTooltip => 'Otvori listu';
 
   @override
   String get commonCancel => 'Odustani';
@@ -177,6 +245,26 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get listMenuClearCompleted => 'Ukloni kupljeno';
+
+  @override
+  String get listMenuClearAll => 'Obriši cijelu listu';
+
+  @override
+  String get listClearAllDialogTitle => 'Obrisati cijelu listu?';
+
+  @override
+  String get listClearAllDialogMessage =>
+      'Ovo će ukloniti sve stavke s liste. Ovu radnju nije moguće poništiti.';
+
+  @override
+  String get listClearAllConfirm => 'Obriši listu';
+
+  @override
+  String get listClearCompletedDialogTitle => 'Ukloniti kupljene stavke?';
+
+  @override
+  String get listClearCompletedDialogMessage =>
+      'Ovo će ukloniti sve kupljene stavke s liste. Ovu radnju nije moguće poništiti.';
 
   @override
   String get settingsBackupExport => 'Izvezi sigurnosnu kopiju';
@@ -229,15 +317,31 @@ class AppLocalizationsHr extends AppLocalizations {
   String get settingsHelp => 'Pomoć i savjeti';
 
   @override
+  String get settingsWhatsNew => 'Što je novo';
+
+  @override
+  String get settingsWhatsNewSubtitle =>
+      'Pogledajte što je novo u ovoj verziji';
+
+  @override
+  String get whatsNewBody =>
+      '• Datumi i podsjetnici — odaberite datum i vrijeme, primite obavijest, a podsjetnik se može ponavljati dnevno, tjedno, mjesečno ili godišnje.\n\n'
+      '• Pregled kalendara — dodirnite ikonu kalendara na početnom zaslonu i vidite sve zakazane artikle na jednom mjestu.\n\n'
+      '• Cijena i lokacija — zabilježite gdje je artikl bio najjeftiniji; Puffio ih pamti za sljedeće dodavanje.\n\n'
+      '• Dodirom obavijesti podsjetnika otvara se lista s označenim artiklom.\n\n'
+      '• Bolja podrška za povećani tekst sustava u cijeloj aplikaciji.\n\n'
+      '• Widget početnog zaslona je uklonjen.';
+
+  @override
   String get helpIntro =>
-      'Puffio postaje pametniji što ga više koristite. Evo kako rade glavne značajke.';
+      'Puffio postaje pametniji što ga više koristite. Evo kako rade njegove glavne značajke.';
 
   @override
   String get helpSuggestionsTitle => 'Pametni prijedlozi';
 
   @override
   String get helpSuggestionsBody =>
-      'Puffio uči iz artikala koje dodajete i označavate kupljenima. S vremenom vam početni zaslon predlaže stvari koje ćete vjerojatno opet trebati — dodirnite prijedlog da ga odmah dodate. Artikli koji su već na trenutnoj listi ne predlažu se ponovno, a prijedlozi se mijenjaju s vašim navikama i vremenom kupovine.';
+      'Puffio uči iz artikala koje dodajete i označavate kao kupljene. S vremenom na početnom zaslonu predlaže proizvode koji će vam vjerojatno ponovno trebati. Dovoljno je dodirnuti prijedlog kako biste ga odmah dodali na listu.\n\nArtikli koji su već na trenutnoj listi neće se ponovno predlagati, a prijedlozi se prilagođavaju vašim navikama kupnje.';
 
   @override
   String get helpPinnedTitle => 'Prikvačeni artikli';
@@ -289,20 +393,32 @@ class AppLocalizationsHr extends AppLocalizations {
       'Izvoz sigurnosne kopije sprema sve vaše liste, artikle i naučenu povijest kupovine u jednu datoteku, na mjesto koje sami odaberete. Uvoz je vraća i zamjenjuje trenutne podatke. Ništa se nigdje ne prenosi.';
 
   @override
+  String get helpDatesTitle => 'Datumi i podsjetnici';
+
+  @override
+  String get helpDatesBody =>
+      'Trebate nešto kupiti do određenog dana?\n\nUredite artikl i odaberite datum, a po želji i vrijeme. Datum će se prikazivati ispod artikla na listi.\n\nUključite „Podsjeti me” kako biste primili obavijest te odaberite koliko unaprijed želite podsjetnik — od točno u odabrano vrijeme pa sve do tjedan dana ranije.\n\nAko vrijeme nije postavljeno, Puffio će vas podsjetiti ujutro.\n\nPodsjetnici se mogu i ponavljati — dnevno, tjedno, mjesečno ili godišnje.\n\nDatum i podsjetnik možete promijeniti ili ukloniti u bilo kojem trenutku ponovnim uređivanjem artikla.';
+
+  @override
+  String get helpCalendarTitle => 'Pregled kalendara';
+
+  @override
+  String get helpCalendarBody =>
+      'Dodirnite ikonu {calendar} kalendara na početnom zaslonu kako biste na jednom mjestu vidjeli sve artikle s datumima.\n\nDani koji sadrže artikle označeni su točkom.\n\nDodirnite željeni dan kako biste vidjeli planirane artikle, a zatim dodirnite artikl da ga uredite ili otvorite listu kojoj pripada.';
+
+  @override
+  String get helpPriceLocationTitle => 'Cijena i lokacija';
+
+  @override
+  String get helpPriceLocationBody =>
+      'Prilikom uređivanja artikla možete spremiti cijenu i lokaciju, primjerice naziv trgovine ili police.\n\nOboje se prikazuje ispod naziva artikla kako bi lista ostala pregledna.\n\nPuffio pamti posljednju unesenu cijenu i lokaciju pa će ih automatski ponuditi kada ponovno dodate isti artikl. To je praktičan način da zapamtite gdje ste ga zadnji put kupili ili pronašli najbolju cijenu.\n\nBrisanjem tih podataka s jednog artikla zapamćene vrijednosti ostaju sačuvane. Unos novih podataka ažurira ih za buduće korištenje.';
+
+  @override
+  String get helpPrivacyTitle => 'Privatnost i rad bez interneta';
+
+  @override
   String get helpOfflineNote =>
-      'Puffio radi u potpunosti na vašem uređaju. Pametni prijedlozi i prepoznavanje kategorija odvijaju se lokalno — bez računa, bez AI usluge u oblaku, bez interneta.';
-
-  @override
-  String get widgetAllDone => 'Sve kupljeno!';
-
-  @override
-  String get widgetEmptyHint => 'Vaša lista za kupnju je prazna.';
-
-  @override
-  String get widgetMoreTemplate => '+ još %d';
-
-  @override
-  String widgetLeftCount(int count) => 'Još $count';
+      'Puffio radi potpuno bez interneta.\n\nVaše liste za kupovinu, pametni prijedlozi i prepoznavanje kategorija ostaju na vašem uređaju. Nisu potrebni račun, oblak, AI poslužitelji ni internetska veza.';
 
   @override
   String get catDairy => 'Mliječni proizvodi';
@@ -349,4 +465,8 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String listsDeleteDialogTitle(String name) => 'Obrisati "$name"?';
+
+  @override
+  String notificationReminderBody(String listName) =>
+      'Na vašoj listi „$listName"';
 }

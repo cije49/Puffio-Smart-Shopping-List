@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_list_pro/l10n/app_localizations.dart';
 
-import '../../core/services/widget_service.dart';
 import '../../providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -17,7 +16,6 @@ class SettingsScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
-    final isWidgetEnabled = ref.watch(widgetEnabledProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -49,27 +47,6 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // -------------------------------------------------------------------
-          // Home screen widget toggle
-          // -------------------------------------------------------------------
-          SwitchListTile(
-            secondary: const Icon(Icons.widgets_outlined),
-            title: Text(t.settingsWidget),
-            subtitle: Text(t.settingsWidgetSubtitle),
-            value: isWidgetEnabled,
-            onChanged: (v) async {
-              await ref.read(widgetEnabledProvider.notifier).set(v);
-              if (v) {
-                // Populate the widget right away — don't wait for the
-                // next list mutation.
-                await ref.read(widgetSyncServiceProvider).sync();
-              } else {
-                await WidgetService.clear();
-              }
-            },
-          ),
-          const Divider(),
-
-          // -------------------------------------------------------------------
           // Backup: export / import
           // -------------------------------------------------------------------
           ListTile(
@@ -85,6 +62,16 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _importBackup(context, ref),
           ),
           const Divider(),
+
+          // -------------------------------------------------------------------
+          // What's new in this version
+          // -------------------------------------------------------------------
+          ListTile(
+            leading: const Icon(Icons.new_releases_outlined),
+            title: Text(t.settingsWhatsNew),
+            subtitle: Text(t.settingsWhatsNewSubtitle),
+            onTap: () => _showWhatsNew(context),
+          ),
 
           // -------------------------------------------------------------------
           // Help & tips
@@ -138,6 +125,26 @@ class SettingsScreen extends ConsumerWidget {
       case ThemeMode.system:
         return t.settingsThemeSystem;
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // What's new dialog
+  // -------------------------------------------------------------------------
+  void _showWhatsNew(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.settingsWhatsNew),
+        content: SingleChildScrollView(child: Text(t.whatsNewBody)),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
+          ),
+        ],
+      ),
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -258,7 +265,8 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t.settingsImportDialogTitle),
-        content: Text(t.settingsImportDialogMessage),
+        content:
+            SingleChildScrollView(child: Text(t.settingsImportDialogMessage)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -284,6 +292,10 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(categoryRepoProvider).seedDefaults();
     await ref.read(activeListIdProvider.notifier).load();
 
+    // Imported items got fresh ids — rebuild the reminder schedule so no
+    // notification is lost or left pointing at a stale id.
+    await ref.read(notificationServiceProvider).resyncAll();
+
     messenger
         .showSnackBar(SnackBar(content: Text(t.settingsImportedSnackBar)));
   }
@@ -297,7 +309,8 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t.settingsClearDialogTitle),
-        content: Text(t.settingsClearDialogMessage),
+        content:
+            SingleChildScrollView(child: Text(t.settingsClearDialogMessage)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -316,6 +329,7 @@ class SettingsScreen extends ConsumerWidget {
     if (confirmed != true) return;
 
     await ref.read(shoppingListRepoProvider).clearAll();
+    // clearAll above also cancels every scheduled reminder.
     await ref.read(itemHistoryRepoProvider).clearAll();
     await ref.read(categoryRepoProvider).clearAll();
     await ref.read(settingsRepoProvider).clearAll();
@@ -323,13 +337,10 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(categoryRepoProvider).seedDefaults();
     await ref.read(themeModeProvider.notifier).set(ThemeMode.system);
     await ref.read(localeProvider.notifier).set(null);
-    await ref.read(widgetEnabledProvider.notifier).set(false);
 
     await ref
         .read(activeListIdProvider.notifier)
         .load(defaultName: t.homeDefaultListName);
-
-    await WidgetService.clear();
 
     if (context.mounted) {
       ScaffoldMessenger.of(context)

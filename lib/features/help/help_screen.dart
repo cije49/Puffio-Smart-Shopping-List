@@ -1,6 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:shop_list_pro/l10n/app_localizations.dart';
 
+/// Inline icon tokens allowed inside help strings. They render as the SAME
+/// Material icons the app itself uses (never emoji), so the Help screen
+/// stays visually consistent with the rest of Puffio.
+const Map<String, IconData> kHelpInlineIcons = {
+  'star': Icons.star, // pin star on item rows
+  'calendar': Icons.calendar_month_outlined, // home app-bar calendar
+};
+
+/// Converts "Tap the {star} on any item" into spans where each {token}
+/// becomes an inline [Icon] scaled to the surrounding text.
+List<InlineSpan> helpBodySpans(
+    BuildContext context, String text, TextStyle? style) {
+  final pattern = RegExp(r'\{([a-z]+)\}');
+  final iconSize = MediaQuery.textScalerOf(context)
+      .scale((style?.fontSize ?? 14) + 2);
+  final iconColor = Theme.of(context).colorScheme.primary;
+
+  final spans = <InlineSpan>[];
+  var start = 0;
+  for (final match in pattern.allMatches(text)) {
+    final icon = kHelpInlineIcons[match.group(1)];
+    if (icon == null) continue; // unknown token: leave it as literal text
+    if (match.start > start) {
+      spans.add(TextSpan(text: text.substring(start, match.start)));
+    }
+    spans.add(WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Icon(icon, size: iconSize, color: iconColor),
+    ));
+    start = match.end;
+  }
+  if (start < text.length) {
+    spans.add(TextSpan(text: text.substring(start)));
+  }
+  return spans;
+}
+
 /// Lightweight, fully offline help screen. Content mirrors actual app
 /// behavior — update it when features change.
 class HelpScreen extends StatelessWidget {
@@ -17,6 +54,9 @@ class HelpScreen extends StatelessWidget {
       (Icons.swipe_left_outlined, t.helpSwipeTitle, t.helpSwipeBody),
       (Icons.straighten_outlined, t.helpUnitsTitle, t.helpUnitsBody),
       (Icons.category_outlined, t.helpCategoriesTitle, t.helpCategoriesBody),
+      (Icons.event_outlined, t.helpDatesTitle, t.helpDatesBody),
+      (Icons.calendar_month_outlined, t.helpCalendarTitle, t.helpCalendarBody),
+      (Icons.sell_outlined, t.helpPriceLocationTitle, t.helpPriceLocationBody),
       (Icons.view_agenda_outlined, t.helpListsTitle, t.helpListsBody),
       (Icons.playlist_add_outlined, t.helpQuickListTitle, t.helpQuickListBody),
       (Icons.save_alt_outlined, t.helpBackupTitle, t.helpBackupBody),
@@ -56,10 +96,21 @@ class HelpScreen extends StatelessWidget {
                     size: 20, color: theme.colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    t.helpOfflineNote,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.helpPrivacyTitle,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        t.helpOfflineNote,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -102,13 +153,18 @@ class _HelpTopic extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  body,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                Builder(builder: (context) {
+                  final style = theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     height: 1.35,
-                  ),
-                ),
+                  );
+                  return Text.rich(
+                    TextSpan(
+                      style: style,
+                      children: helpBodySpans(context, body, style),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

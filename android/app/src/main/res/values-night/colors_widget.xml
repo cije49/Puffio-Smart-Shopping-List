@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Dark home-screen environment -->
-    <color name="widgetBackground">#20241F</color>
-    <color name="widgetTextPrimary">#E2E3DD</color>
-    <color name="widgetTextSecondary">#A9B0A6</color>
-    <color name="widgetAccent">#8BC98D</color>
-    <color name="widgetRing">#5E7F61</color>
-</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Debug builds install alongside the Play version; the distinct name
+         makes the two apps (and their widgets) easy to tell apart. -->
+    <string name="app_name">Puffio Dev</string>
+</resources>

@@ -10,7 +10,7 @@ import '../core/services/item_normalization_service.dart';
 import '../core/services/category_assignment_service.dart';
 import '../core/services/suggestion_service.dart';
 import '../core/services/backup_service.dart';
-import '../core/services/widget_sync_service.dart';
+import '../core/services/notification_service.dart';
 
 // =============================================================================
 // Database — must be overridden in main.dart
@@ -23,11 +23,17 @@ final isarProvider = Provider<Isar>(
 // Repositories
 // =============================================================================
 final shoppingListRepoProvider = Provider<ShoppingListRepository>(
-  (ref) => ShoppingListRepository(ref.watch(isarProvider)),
+  (ref) => ShoppingListRepository(
+    ref.watch(isarProvider),
+    ref.watch(notificationServiceProvider),
+  ),
 );
 
 final shoppingItemRepoProvider = Provider<ShoppingItemRepository>(
-  (ref) => ShoppingItemRepository(ref.watch(isarProvider)),
+  (ref) => ShoppingItemRepository(
+    ref.watch(isarProvider),
+    ref.watch(notificationServiceProvider),
+  ),
 );
 
 final itemHistoryRepoProvider = Provider<ItemHistoryRepository>(
@@ -64,9 +70,14 @@ final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(ref.watch(isarProvider)),
 );
 
-final widgetSyncServiceProvider = Provider<WidgetSyncService>(
-  (ref) => WidgetSyncService(ref),
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NotificationService(ref),
 );
+
+/// Item id the shopping-list screen should scroll to and briefly highlight
+/// (set when the user taps a reminder notification). The highlight clears
+/// itself after the animation finishes.
+final notificationHighlightProvider = StateProvider<int?>((_) => null);
 
 /// Normalized names of favorited items (drives star icons in the list).
 final favoriteNamesProvider = StreamProvider<Set<String>>((ref) {
@@ -191,25 +202,3 @@ final swipeDeleteLearnedProvider =
   );
 });
 
-// =============================================================================
-// Home screen widget toggle
-// =============================================================================
-final initialWidgetEnabledProvider = Provider<bool>((_) => false);
-
-class WidgetEnabledNotifier extends StateNotifier<bool> {
-  final SettingsRepository _repo;
-  WidgetEnabledNotifier(this._repo, bool initial) : super(initial);
-
-  Future<void> set(bool value) async {
-    state = value;
-    await _repo.setWidgetEnabled(value);
-  }
-}
-
-final widgetEnabledProvider =
-    StateNotifierProvider<WidgetEnabledNotifier, bool>((ref) {
-  return WidgetEnabledNotifier(
-    ref.watch(settingsRepoProvider),
-    ref.watch(initialWidgetEnabledProvider),
-  );
-});

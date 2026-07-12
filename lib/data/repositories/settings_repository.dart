@@ -49,21 +49,6 @@ class SettingsRepository {
   }
 
   // ---------------------------------------------------------------------------
-  // Home screen widget toggle
-  // ---------------------------------------------------------------------------
-  static const _widgetEnabledKey = 'isWidgetEnabled';
-
-  Future<bool> isWidgetEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_widgetEnabledKey) ?? false;
-  }
-
-  Future<void> setWidgetEnabled(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_widgetEnabledKey, value);
-  }
-
-  // ---------------------------------------------------------------------------
   // Swipe-to-delete hint — learned per list, so each new list can teach
   // the gesture once. Stored as a string list of list ids.
   // ---------------------------------------------------------------------------

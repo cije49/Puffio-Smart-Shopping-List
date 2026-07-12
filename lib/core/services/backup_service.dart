@@ -55,6 +55,13 @@ class BackupService {
                 'isChecked': i.isChecked,
                 'position': i.position,
                 'addedFrom': i.addedFrom,
+                'dueDate': i.dueDate?.toIso8601String(),
+                'hasDueTime': i.hasDueTime,
+                'reminderEnabled': i.reminderEnabled,
+                'reminderOffsetMinutes': i.reminderOffsetMinutes,
+                'reminderRepeat': i.reminderRepeat,
+                'price': i.price,
+                'location': i.location,
                 'createdAt': i.createdAt.toIso8601String(),
                 'updatedAt': i.updatedAt.toIso8601String(),
               })
@@ -65,6 +72,8 @@ class BackupService {
                 'displayName': h.displayName,
                 'categoryId': h.categoryId,
                 'lastUnit': h.lastUnit,
+                'lastPrice': h.lastPrice,
+                'lastLocation': h.lastLocation,
                 'timesAdded': h.timesAdded,
                 'timesChecked': h.timesChecked,
                 'lastAddedAt': h.lastAddedAt?.toIso8601String(),
@@ -153,6 +162,16 @@ class BackupService {
           ..isChecked = i['isChecked'] as bool? ?? false
           ..position = (i['position'] as num?)?.toInt()
           ..addedFrom = i['addedFrom'] as String? ?? 'manual'
+          // Backups from before these fields existed simply leave them
+          // at their defaults (no date / reminder / price / location).
+          ..dueDate = parseDateOrNull(i['dueDate'])
+          ..hasDueTime = i['hasDueTime'] as bool? ?? false
+          ..reminderEnabled = i['reminderEnabled'] as bool? ?? false
+          ..reminderOffsetMinutes =
+              (i['reminderOffsetMinutes'] as num?)?.toInt() ?? 0
+          ..reminderRepeat = i['reminderRepeat'] as String? ?? 'none'
+          ..price = (i['price'] as num?)?.toDouble()
+          ..location = i['location'] as String?
           ..createdAt = parseDate(i['createdAt'])
           ..updatedAt = parseDate(i['updatedAt']);
         await _isar.shoppingListItems.put(item);
@@ -168,6 +187,8 @@ class BackupService {
           ..displayName = h['displayName'] as String? ?? normalized
           ..categoryId = mapCat(h['categoryId'])
           ..lastUnit = h['lastUnit'] as String?
+          ..lastPrice = (h['lastPrice'] as num?)?.toDouble()
+          ..lastLocation = h['lastLocation'] as String?
           ..timesAdded = (h['timesAdded'] as num?)?.toInt() ?? 0
           ..timesChecked = (h['timesChecked'] as num?)?.toInt() ?? 0
           ..lastAddedAt = parseDateOrNull(h['lastAddedAt'])

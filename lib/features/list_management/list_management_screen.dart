@@ -197,7 +197,7 @@ class ListManagementScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(t.listsDeleteDialogTitle(list.name)),
-        content: Text(t.listsDeleteMessage),
+        content: SingleChildScrollView(child: Text(t.listsDeleteMessage)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),

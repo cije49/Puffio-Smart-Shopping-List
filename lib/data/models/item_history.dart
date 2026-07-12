@@ -22,6 +22,15 @@ class ItemHistory {
   /// Never guessed — only set when the user picks a unit themselves.
   String? lastUnit;
 
+  /// Last non-empty price the user entered for this item (reused on next
+  /// addition). Only updated by explicit non-empty saves — clearing the
+  /// price on one list item does not erase this memory.
+  double? lastPrice;
+
+  /// Last non-empty location ("Lidl", "Aisle 4", …) the user entered for
+  /// this item (reused on next addition). Same update rule as [lastPrice].
+  String? lastLocation;
+
   /// Total number of times item was added to any list.
   int timesAdded = 0;
 

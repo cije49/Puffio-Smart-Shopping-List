@@ -33,6 +33,31 @@ class ShoppingListItem {
   /// How the item was added: manual, chip, recent, favorite, pattern.
   String addedFrom = 'manual';
 
+  /// Optional due date. When [hasDueTime] is false, only the calendar day
+  /// is meaningful (time component is midnight local).
+  @Index()
+  DateTime? dueDate;
+
+  /// Whether the user picked a specific time in addition to the date.
+  bool hasDueTime = false;
+
+  /// Whether a local reminder notification is scheduled for this item.
+  bool reminderEnabled = false;
+
+  /// How long before [dueDate] the reminder should fire, in minutes.
+  /// 0 = at the selected time. Only meaningful when [reminderEnabled].
+  int reminderOffsetMinutes = 0;
+
+  /// How the reminder repeats: 'none', 'daily', 'weekly', 'monthly',
+  /// or 'yearly'. Only meaningful when [reminderEnabled].
+  String reminderRepeat = 'none';
+
+  /// Optional price (plain number — no currency is stored).
+  double? price;
+
+  /// Optional free-text location ("Lidl", "Aisle 4", …).
+  String? location;
+
   late DateTime createdAt;
 
   late DateTime updatedAt;

@@ -97,9 +97,6 @@ abstract class AppLocalizations {
   String get settingsClearDialogMessage;
   String get settingsClearedSnackBar;
 
-  String get settingsWidget;
-  String get settingsWidgetSubtitle;
-
   String get editItemTitle;
   String get editItemName;
   String get editItemQuantity;
@@ -107,6 +104,43 @@ abstract class AppLocalizations {
   String get editItemUnitNone;
   String get editItemCategory;
   String get editItemSave;
+  String get editItemPrice;
+  String get editItemLocation;
+  String get editItemLocationHint;
+  String get editItemSectionSchedule;
+  String get editItemAddDate;
+  String get editItemAddTime;
+  String get editItemRemoveDate;
+  String get editItemRemoveTime;
+  String get editItemReminderToggle;
+  String get editItemReminderWhen;
+  String get editItemRepeat;
+
+  String get repeatNever;
+  String get repeatDaily;
+  String get repeatWeekly;
+  String get repeatMonthly;
+  String get repeatYearly;
+
+  String get reminderAtTime;
+  String get reminder30MinBefore;
+  String get reminder1HourBefore;
+  String get reminder3HoursBefore;
+  String get reminder1DayBefore;
+  String get reminder2DaysBefore;
+  String get reminder1WeekBefore;
+  String get reminderPermissionDenied;
+
+  String get notificationChannelName;
+  String get notificationChannelDescription;
+  String get notificationReminderBodyNoList;
+  String get notificationItemGone;
+
+  String get calendarTitle;
+  String get calendarEmptyTitle;
+  String get calendarEmptyHint;
+  String get calendarNoItemsForDay;
+  String get calendarOpenListTooltip;
 
   String get commonCancel;
   String get commonDelete;
@@ -120,6 +154,12 @@ abstract class AppLocalizations {
   String get itemPinnedSnackBar;
   String get itemUnpinnedSnackBar;
   String get listMenuClearCompleted;
+  String get listMenuClearAll;
+  String get listClearAllDialogTitle;
+  String get listClearAllDialogMessage;
+  String get listClearAllConfirm;
+  String get listClearCompletedDialogTitle;
+  String get listClearCompletedDialogMessage;
   String get settingsBackupExport;
   String get settingsBackupExportSubtitle;
   String get settingsBackupImport;
@@ -137,6 +177,9 @@ abstract class AppLocalizations {
   String get historyRenameDialogTitle;
 
   String get settingsHelp;
+  String get settingsWhatsNew;
+  String get settingsWhatsNewSubtitle;
+  String get whatsNewBody;
   String get helpIntro;
   String get helpSuggestionsTitle;
   String get helpSuggestionsBody;
@@ -154,11 +197,14 @@ abstract class AppLocalizations {
   String get helpQuickListBody;
   String get helpBackupTitle;
   String get helpBackupBody;
+  String get helpDatesTitle;
+  String get helpDatesBody;
+  String get helpCalendarTitle;
+  String get helpCalendarBody;
+  String get helpPriceLocationTitle;
+  String get helpPriceLocationBody;
+  String get helpPrivacyTitle;
   String get helpOfflineNote;
-
-  String get widgetAllDone;
-  String get widgetEmptyHint;
-  String get widgetMoreTemplate;
 
   String get catDairy;
   String get catBakery;
@@ -176,9 +222,9 @@ abstract class AppLocalizations {
   // Parameterised messages
   // ---------------------------------------------------------------------------
   String homeItemsCheckedSummary(int checked, int total);
-  String widgetLeftCount(int count);
   String listsDuplicatedSnackBar(String name);
   String listsDeleteDialogTitle(String name);
+  String notificationReminderBody(String listName);
 }
 
 class _AppLocalizationsDelegate
