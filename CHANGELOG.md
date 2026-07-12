@@ -1,5 +1,33 @@
 # Puffio — Changelog
 
+## 1.0.5
+
+### Dates, reminders & calendar
+- Give any item a date — and a time, if you like; it shows under the item
+  in your list
+- Turn on "Remind me" for a notification, from exactly on time up to one
+  week in advance; reminders can repeat daily, weekly, monthly, or yearly
+- Reminders survive app and device restarts
+- Tapping a reminder opens the right list and highlights the item
+- New calendar overview: tap the calendar icon on Home to see every
+  scheduled item in one place
+
+### Price & location
+- Note an item's price (€) and where you found it — both appear in small
+  text under the item
+- Puffio remembers them: the next time you add the same item, the last
+  price and place are filled in automatically
+
+### Improvements
+- Item editor: pinned Cancel / "Save item" bar that's always reachable,
+  natural keyboard next/done flow, no more surprise keyboard pop-ups
+- Much better support for enlarged system text across the whole app
+- "What's new" section in Settings
+- Refreshed Help & tips in English and Croatian
+
+### Removed
+- The home-screen widget has been removed
+
 ## 1.0.0 — First release
 
 Puffio is a shopping list that learns what you buy, so making next week's

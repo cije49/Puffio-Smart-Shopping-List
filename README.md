@@ -1,18 +1,19 @@
 # Puffio — Smart Shopping List
 
-Flutter Android app with intelligent suggestions, multiple lists, category grouping, favorites, pattern-based predictions, typing autocomplete, and English/Croatian UI. Fully offline, no account required.
+Flutter Android app that learns what you buy. Intelligent suggestions, multiple lists, category grouping, item dates with repeatable reminders, a calendar overview, remembered prices and locations, and an English/Croatian UI. Fully offline, no account required.
 
-Privacy: Puffio stores everything locally and transmits nothing. See the [privacy policy](docs/privacy-policy.html).
+**Privacy:** Puffio stores everything locally and transmits nothing. See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) or the [HTML version](docs/privacy-policy.html).
 
 ## Tech Stack
 
 | Layer | Library |
 |---|---|
-| UI | Flutter (Material 3, dark mode) |
+| UI | Flutter (Material 3, light/dark) |
 | State | Riverpod 2.x |
-| Database | Isar 3.x (reactive, embedded) |
+| Database | isar_community 3.x (reactive, embedded, 16 KB page-size compliant) |
+| Notifications | flutter_local_notifications + timezone / flutter_timezone |
 | Settings | SharedPreferences |
-| i18n | flutter_localizations + ARB files |
+| i18n | flutter_localizations + hand-written localization classes (EN, HR) |
 
 ## Setup
 
@@ -21,115 +22,117 @@ Flutter 3.10+ with Dart 3.0+ required.
 
 ### 2. Get dependencies
 ```bash
-cd shop_list_pro
 flutter pub get
 ```
 
-This also auto-generates the localization classes from `lib/l10n/app_en.arb` and `app_hr.arb`.
-
 ### 3. Generate Isar schema files
 ```bash
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 ```
-Re-run after changing any Isar model.
+Re-run after changing any Isar model (`lib/data/models/`).
 
 ### 4. Run
 ```bash
 flutter run
 ```
 
-### 5. Android Gradle patch (required once)
-If you hit a namespace error from `isar_flutter_libs`, add this to the **bottom** of `android/build.gradle.kts` (before `evaluationDependsOn`):
+Debug builds install as **Puffio Dev** (`com.nexforgelabs.puffio.debug`) with their own data, so they coexist with the Play Store version (`com.nexforgelabs.puffio`) on the same device. Release builds are signed via `android/key.properties` (not committed).
 
-```kotlin
-subprojects {
-    afterEvaluate {
-        if (hasProperty("android")) {
-            extensions.findByName("android")?.let { ext ->
-                val androidExt = ext as com.android.build.gradle.BaseExtension
-                if (androidExt.namespace == null) {
-                    androidExt.namespace = group.toString()
-                }
-            }
-        }
-    }
-}
-```
+### Localization note
+Translations live in hand-written Dart classes (`lib/l10n/app_localizations*.dart`), not generated ARB output. To change a string, edit the abstract getter in `app_localizations.dart` and both the `_en` and `_hr` implementations. To add a language, create `app_localizations_XX.dart`, register it in `app_localizations.dart`, and add it to the language picker in `settings_screen.dart`.
 
 ## Project Structure
 
 ```
 lib/
-├── main.dart                              # Entry point
+├── main.dart                              # Entry point, DB + notification init
 ├── app/
-│   ├── app.dart                           # MaterialApp + routing + i18n
+│   ├── app.dart                           # MaterialApp, routing, notification-tap navigation
 │   └── theme.dart                         # Light & dark themes
 ├── l10n/
-│   ├── app_en.arb                         # English translations
-│   └── app_hr.arb                         # Croatian translations
+│   ├── app_localizations.dart             # Abstract strings + delegate
+│   ├── app_localizations_en.dart          # English
+│   └── app_localizations_hr.dart          # Croatian
 ├── core/
-│   ├── constants.dart                     # App-wide constants
+│   ├── constants.dart                     # Units, reminder offsets/repeats, categories
 │   ├── database.dart                      # Isar initialisation
 │   ├── category_localizer.dart            # Translate default category names
-│   └── services/
-│       ├── item_normalization_service.dart
-│       ├── category_assignment_service.dart
-│       └── suggestion_service.dart
+│   ├── services/
+│   │   ├── notification_service.dart      # Schedule/cancel/resync item reminders
+│   │   ├── backup_service.dart            # JSON export/import (replace-all)
+│   │   ├── suggestion_service.dart        # Suggestion scoring & sections
+│   │   ├── category_assignment_service.dart
+│   │   ├── category_keywords.dart         # EN/HR keyword → category mapping
+│   │   ├── item_normalization_service.dart
+│   │   ├── history_merge.dart
+│   │   └── suggestion_scoring.dart
+│   └── utils/
+│       ├── item_display.dart              # Locale-aware date/price formatting, overdue
+│       ├── quantity_rules.dart            # Unit-aware quantity steps
+│       └── name_generator.dart            # Unique list names
 ├── data/
-│   ├── models/
-│   │   ├── shopping_list.dart
-│   │   ├── shopping_list_item.dart
-│   │   ├── item_history.dart
-│   │   └── category.dart
-│   └── repositories/
-│       ├── shopping_list_repository.dart
-│       ├── shopping_item_repository.dart
-│       ├── item_history_repository.dart   # + searchByPrefix for autocomplete
-│       ├── category_repository.dart
-│       └── settings_repository.dart       # dark mode + locale persistence
+│   ├── models/                            # ShoppingList, ShoppingListItem, ItemHistory, Category
+│   └── repositories/                      # CRUD + notification lifecycle hooks
 ├── providers/
-│   └── app_providers.dart                 # All Riverpod providers (incl. locale)
+│   └── app_providers.dart                 # All app-level Riverpod providers
 └── features/
     ├── home/                              # Smart Start screen
-    ├── shopping_list/                     # Active list + item edit modal
+    ├── shopping_list/                     # Active list, item edit modal, highlight-on-tap
+    ├── calendar/                          # Month overview of dated items
     ├── list_management/
-    ├── settings/                          # Dark mode, language, clear data
-    └── shared/widgets/
-        ├── suggestion_chips.dart
-        └── item_autocomplete_field.dart   # Typing autocomplete widget
+    ├── settings/                          # Language, theme, backup, what's new
+    ├── help/                              # Offline help & tips (EN/HR)
+    └── shared/widgets/                    # Suggestion chips, autocomplete field
 ```
 
 ## Features
 
-### Core
-- **Multiple lists** — create, rename, duplicate, delete. One list is always "active".
-- **Smart suggestions** — 4 sections: pattern-based ("You might need"), frequent, recent, favorites.
-- **Pattern detection** — tracks average purchase interval; suggests items that are "due".
-- **Category auto-grouping** — items grouped by category, auto-assigned from history.
-- **Favorites** — pin items from the list screen; always visible on Home.
-- **Quantity & units** — optional quantity (+ / −) and unit per item.
-- **Multi-add** — comma or newline-separated input adds multiple items at once.
-- **Duplicate handling** — adding an existing item increments its quantity.
-- **Swipe to delete** — no confirmation dialog (speed priority).
-- **Inline editing** — bottom-sheet modal with name, quantity, unit, category.
-- **Dark mode** — toggle in Settings; persisted across sessions.
-- **Fully offline, no account required.**
+### Lists & items
+- **Multiple lists** — create, rename, duplicate, delete; swipe or edge-tap the Home card to switch.
+- **Smart suggestions** — pinned, pattern-based ("You might need these"), and frequency-based sections that adapt to your habits.
+- **Typing autocomplete** — matching items from history appear as you type; works with multi-item input.
+- **Multi-add** — comma or newline-separated input adds several items at once.
+- **Category auto-grouping** — items grouped for a smoother trip through the store; manual changes are remembered.
+- **Quantity & units** — unit-aware steppers (pcs 1 · g/mL 100 · kg/L 0.5); units are remembered per item, never guessed.
+- **Swipe to delete** with Undo; long-press drag to reorder.
 
-### New in this version
-- **🌍 Multi-language UI** — English + Croatian, with "System default" option. Language switcher in Settings; choice is persisted. Category names are translated at display time (not in the database), so switching language updates all existing items.
-- **⚡ Typing autocomplete** — as you type in the quick-add input on Home or in the Add-Item modal on the list screen, matching items from your history appear in a dropdown. One tap completes. Works correctly with multi-item input (only the last token after a comma/newline drives suggestions).
+### Dates, reminders & calendar
+- **Item dates** — optional date and time per item, shown under the item, localized.
+- **Reminders** — local notifications with offsets from "at the selected time" up to "1 week before", and repeats (daily/weekly/monthly/yearly). Survive app and device restarts; exact alarms when permitted, graceful inexact fallback.
+- **Tap a reminder** → the right list opens and the item is scrolled to and briefly highlighted.
+- **Calendar overview** — month grid with dot markers; tap a day to see its items across all lists.
 
-### Adding more languages
-1. Create `lib/l10n/app_XX.arb` (e.g. `app_de.arb` for German).
-2. Copy all keys from `app_en.arb` and translate the values.
-3. Add the locale option to the language picker in `settings_screen.dart`.
-4. Add any new category translations to `category_localizer.dart` if you change the seeded names.
+### Price & location memory
+- Note an item's price (shown in €) and where you found it ("Lidl", "Aisle 4"). Puffio remembers both per item and prefills them the next time you add it — a lightweight "where was this cheapest" memory, fully user-entered.
+
+### General
+- **Backup & restore** — full JSON export/import, nothing uploaded anywhere.
+- **English + Croatian** UI with "System default" option; light/dark theme.
+- **Accessibility** — layouts adapt to enlarged system text (rows wrap, dialogs scroll, actions stay reachable).
+- **Offline help** — Help & tips screen documenting every feature, plus a "What's new" dialog in Settings.
 
 ## Screens
 
 | Screen | Route | Purpose |
 |---|---|---|
-| Home (Smart Start) | `/` | Suggestion chips, quick-add with autocomplete, list summary |
-| Active List | `/list` | In-store shopping — check, edit, delete, grouped by category |
+| Home (Smart Start) | `/` | Suggestion chips, quick-add with autocomplete, list pager |
+| Active List | `/list` | In-store shopping — check, edit, reorder, grouped by category |
+| Calendar | `/calendar` | Month overview of all dated items |
 | List Management | `/lists` | Create, rename, duplicate, delete, set active |
-| Settings | `/settings` | Language picker, dark mode, clear all data |
+| Settings | `/settings` | Language, theme, backup, what's new, clear data |
+| Help & Tips | `/help` | Offline feature guide (EN/HR) |
+
+## Testing
+
+```bash
+flutter test
+```
+Pure-logic test suites cover normalization, suggestion scoring, history merging, quantity rules, category keywords, and list-name generation.
+
+## Android notes
+
+- `POST_NOTIFICATIONS` is requested in-context the first time a reminder is enabled (Android 13+); `SCHEDULE_EXACT_ALARM` is optional — without it reminders fall back to inexact scheduling.
+- A boot receiver re-registers scheduled reminders after restart; the app additionally resyncs the full schedule from the database on every launch.
+- Core-library desugaring is enabled (required by flutter_local_notifications).
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
